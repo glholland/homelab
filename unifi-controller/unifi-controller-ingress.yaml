@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: unifi-controller
+  namespace: unifi
+spec:
+  rules:
+    - host: unifi.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Exact
+            backend:
+              service:
+                name: unifi-controller
+                port:
+                  number: 8443
