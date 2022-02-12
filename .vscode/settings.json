@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "kubernetes://schema/traefik.containo.us/v1alpha1@ingressroute": "file:///c%3A/Users/igots/OneDrive/Documents/GitHub/homelab/longhorn/longhorn-ingressroute.yaml"
+    }
+}
