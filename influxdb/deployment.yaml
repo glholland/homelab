@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb-deployment
+  namespace: influxdb
+spec:
+  selector:
+    matchLabels:
+      app: influxdb
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+        - image: influxdb:1.7.4
+          name: influxdb
+          ports:
+            - containerPort: 8086
+          volumeMounts:
+            - mountPath: /var/lib/influxdb
+              name: influxdb-data
+            - mountPath: /etc/influxdb/influxdb.conf
+              name: influxdb-config
+              subPath: influxdb.conf
+              readOnly: true
+          envFrom:
+            - secretRef:
+                name: influxdb-secrets
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4096Mi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+      volumes:
+        - name: influxdb-data
+          persistentVolumeClaim:
+            claimName: influxdb-pvc
+        - name: influxdb-config
+          configMap:
+            name: influxdb-config
