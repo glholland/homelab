@@ -1,0 +1,13 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: influxdb-ingressroute
+  namespace: tig
+spec:
+  routes:
+  - kind: Rule
+    match: Host(`influx.garrettholland.com`)
+    services:
+    - kind: Service
+      name: influxdb-service
+      port: 8086

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegraf
+  namespace: tig   
+spec:
+  selector:
+    matchLabels:
+      app: telegraf
+  template:
+    metadata:
+      labels:
+        app: telegraf
+    spec:
+      containers:
+      - name: telegraf
+        image: docker.io/telegraf:1.20.4-alpine
+        resources:
+          limits:
+            memory: 2048Mi
+            cpu: 2000m
+          requests:
+            memory: 512Mi
+            cpu: 250m
+        ports:
+        - containerPort: 8092
+          protocol: UDP
+        - containerPort: 8094
+          protocol: TCP
+        - containerPort: 8125
+        - containerPort: 161
+          protocol: UDP
+        - containerPort: 161
+          protocol: TCP
+        - containerPort: 162
+          protocol: UDP
+        - containerPort: 162
+          protocol: TCP
+        volumeMounts:
+            - mountPath: /etc/telegraf/telegraf.conf
+              name: telegraf-config
+              subPath: telegraf.conf
+              readOnly: true
+        envFrom:
+          - secretRef:
+              name: telegraf-secrets
+      volumes:
+        - name: telegraf-config
+          configMap:
+            name: telegraf-config
