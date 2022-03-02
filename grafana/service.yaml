@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grafana-svc
-  namespace: tig
+  namespace: grafana-ns
 spec:
   ports:
     - name: "3000"

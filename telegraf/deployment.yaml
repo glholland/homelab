@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: telegraf
-  namespace: tig   
+  namespace: telegraf-ns   
 spec:
   selector:
     matchLabels:

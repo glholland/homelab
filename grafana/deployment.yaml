@@ -4,7 +4,7 @@ metadata:
   labels:
     app: grafana
   name: grafana
-  namespace: tig
+  namespace: grafana-ns
 spec:
   selector:
     matchLabels:

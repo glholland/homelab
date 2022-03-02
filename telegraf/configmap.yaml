@@ -2,16 +2,22 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: telegraf-config
-  namespace: tig
+  namespace: telegraf-ns
   labels:
     k8s-app: telegraf
 data:
-  telegraf.conf: |+    
+  telegraf.conf: |+
+    [agent]
+      debug = true
+      logtarget = "file"
+      logfile = "/etc/telegraf/telegraf.log"
     [[inputs.snmp]]
+      [[inputs.snmp.tags]]
+        tag = "router"
       # List of agents to poll
-      agents = [ "udp://192.168.0.1:161"]
+      agents = [ "192.168.0.1"]
       # Polling interval
-      interval = "60s"
+      interval = "30s"
       # Timeout for each SNMP query.
       timeout = "5s"
       # Number of retries to attempt within timeout.
@@ -355,7 +361,11 @@ data:
 
     # OUTPUT TO INFLUXDB    
     [[outputs.influxdb]]
-      url = "http://influxdb-service:8086"
-      database = "telegraf"
+      [[outputs.influxdb.tagdrop]]
+        tag = "router"
+      urls = ["${INFLUX_HOST}"]
+      username = "${INFLUXDB_USER}"
+      password = "${INFLUXDB_USER_PASSWORD}"
+      database = "ubntrouter_telegraf"
       precision = "s"
-      skip_database_creation = true
+      skip_database_creation = false

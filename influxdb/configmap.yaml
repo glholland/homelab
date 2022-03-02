@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: influxdb-config
-  namespace: tig
+  namespace: influxdb-ns
 data:
   influxdb.conf: |+
     reporting-disabled = false
