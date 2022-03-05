@@ -1,32 +1,23 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: telegraf-config
+  name: routersnmp-config-cm
   namespace: telegraf-ns
   labels:
     k8s-app: telegraf
-data:
-  telegraf.conf: |+
-    [agent]
-      debug = true
-      logtarget = "stderr"
-      interval = "20s"
-      flush_interval = "5s"
-      flush_jitter = "5s"
-      metric_batch_size = 10000
-    [[inputs.cpu]]
-      percpu = true
-      totalcpu = true
-      fielddrop = ["time_*"]
+data: 
+  routersnmp.conf: |+
     [[inputs.snmp]]
+      [[inputs.snmp.tags]]
+        influxdb_database = ["routersnmp"]
       # List of agents to poll
-      agents = ["${ROUTERIP}"]
+      agents = ["192.168.0.1"]
       # Polling interval
-      interval = "15s"
+      interval = "30s"
       # Timeout for each SNMP query.
       timeout = "5s"
       # Number of retries to attempt within timeout.
-      retries = 1
+      retries = 3
       # SNMP version, values can be 1, 2, or 3
       version = 2
       # SNMP community string.
@@ -363,33 +354,3 @@ data:
       [[inputs.snmp.field]]
         name = "snmpOutGetResponses"
         oid = "SNMPv2-MIB::snmpOutGetResponses.0"
-      [inputs.snmp.tags]
-        influxdb_database = "routersnmp"
-    ###############
-    ### OUTPUTS ###
-    ###############
-    [[outputs.influxdb]]
-        alias = "telegrafdb"
-      urls = ["${INFLUX_URL}"]
-      username = "${INFLUXDB_USER}"
-      password = "${INFLUXDB_USER_PASSWORD}"
-      database = "${INFLUX_DB}"
-      precision = "s"
-    # [[outputs.influxdb]]
-    #     alias = "routersyslogdb"
-    #   urls = ["${INFLUX_URL}"]
-    #   username = "${INFLUXDB_USER}"
-    #   password = "${INFLUXDB_USER_PASSWORD}"
-    #   database = "${INFLUX_SYSLOG_DB}"
-    #   precision = "s"
-    #   [outputs.influxdb.tagpass]
-    #     influxdb_database = ["routersyslog"]
-    [[outputs.influxdb]]
-        alias = "routersnmpdb"
-      urls = ["${INFLUX_URL}"]
-      username = "${INFLUXDB_USER}"
-      password = "${INFLUXDB_USER_PASSWORD}"
-      database = "${INFLUX_ROUTERSNMP_DB}"
-      precision = "s"
-      [outputs.influxdb.tagpass]
-        influxdb_database = ["routersnmp"]

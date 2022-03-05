@@ -1,0 +1,13 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: telegraf-ingressroute
+  namespace: telegraf-ns
+spec:
+  routes:
+  - kind: Rule
+    match: Host(`syslog.garrettholland.com`)
+    services:
+    - kind: Service
+      name: telegraf-service
+      port: 6514
