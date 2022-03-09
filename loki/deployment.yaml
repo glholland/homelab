@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki-deployment
+  namespace: loki-ns   
+spec:
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+      - name: loki
+        image: docker.io/loki:main-c8bdb37
+        resources:
+          limits:
+            memory: 1024Mi
+            cpu: 1000m
+          requests:
+            memory: 512Mi
+            cpu: 250m
+        ports:
+          - name: http-metrics
+            containerPort: 3100
+            protocol: TCP
+        volumeMounts:
+            - mountPath: /etc/telegraf/telegraf.conf
+              name: telegraf-config
+              subPath: telegraf.conf
+              readOnly: true
+            - mountPath: /etc/telegraf/telegraf.d/routersnp.conf
+              name: routersnmp-config
+              subPath: routersnmp.conf
+        envFrom:
+          - secretRef:
+              name: telegraf-secrets
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: config
+          secret:
+            secretName: release-name-loki
+        - name: storage
+          emptyDir: {}

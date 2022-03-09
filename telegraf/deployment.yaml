@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: telegraf
-        image: docker.io/telegraf:1.20.4-alpine
+        image: docker.io/skaterdurf/telegraf:1.0.0
         resources:
           limits:
             memory: 2048Mi
