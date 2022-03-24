@@ -1,0 +1,83 @@
+
+
+-
+---
+# Source: vault/templates/injector-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-agent-injector-svc
+  namespace: default
+  labels:
+    app.kubernetes.io/name: vault-agent-injector
+    app.kubernetes.io/instance: vault
+    app.kubernetes.io/managed-by: Helm
+  
+spec:
+  ports:
+  - name: https
+    port: 443
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/name: vault-agent-injector
+    app.kubernetes.io/instance: vault
+    component: webhook
+---
+# Source: vault/templates/server-headless-service.yaml
+# Service for Vault cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-internal
+  namespace: default
+  labels:
+    helm.sh/chart: vault-0.19.0
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: "http"
+      port: 8200
+      targetPort: 8200
+    - name: https-internal
+      port: 8201
+      targetPort: 8201
+  selector:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    component: server
+---
+# Source: vault/templates/server-service.yaml
+# Service for Vault cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: default
+  labels:
+    helm.sh/chart: vault-0.19.0
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+
+spec:
+  # We want the servers to become available even if they're not ready
+  # since this DNS is also used for join operations.
+  publishNotReadyAddresses: true
+  ports:
+    - name: http
+      port: 8200
+      targetPort: 8200
+    - name: https-internal
+      port: 8201
+      targetPort: 8201
+  selector:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    component: server

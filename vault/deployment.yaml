@@ -1,0 +1,113 @@
+---
+# Source: vault/templates/injector-deployment.yaml
+# Deployment for the injector
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-agent-injector
+  namespace: default
+  labels:
+    app.kubernetes.io/name: vault-agent-injector
+    app.kubernetes.io/instance: vault
+    app.kubernetes.io/managed-by: Helm
+    component: webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vault-agent-injector
+      app.kubernetes.io/instance: vault
+      component: webhook
+  
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault-agent-injector
+        app.kubernetes.io/instance: vault
+        component: webhook
+    spec:
+      
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: vault-agent-injector
+                  app.kubernetes.io/instance: "vault"
+                  component: webhook
+              topologyKey: kubernetes.io/hostname
+  
+      
+      
+      serviceAccountName: "vault-agent-injector"
+      hostNetwork: false
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 1000
+        runAsUser: 100
+      containers:
+        - name: sidecar-injector
+          
+          image: "hashicorp/vault-k8s:0.14.2"
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+          env:
+            - name: AGENT_INJECT_LISTEN
+              value: :8080
+            - name: AGENT_INJECT_LOG_LEVEL
+              value: info
+            - name: AGENT_INJECT_VAULT_ADDR
+              value: http://vault.default.svc:8200
+            - name: AGENT_INJECT_VAULT_AUTH_PATH
+              value: auth/kubernetes
+            - name: AGENT_INJECT_VAULT_IMAGE
+              value: "hashicorp/vault:1.9.2"
+            - name: AGENT_INJECT_TLS_AUTO
+              value: vault-agent-injector-cfg
+            - name: AGENT_INJECT_TLS_AUTO_HOSTS
+              value: vault-agent-injector-svc,vault-agent-injector-svc.default,vault-agent-injector-svc.default.svc
+            - name: AGENT_INJECT_LOG_FORMAT
+              value: standard
+            - name: AGENT_INJECT_REVOKE_ON_SHUTDOWN
+              value: "false"
+            - name: AGENT_INJECT_CPU_REQUEST
+              value: "250m"
+            - name: AGENT_INJECT_CPU_LIMIT
+              value: "500m"
+            - name: AGENT_INJECT_MEM_REQUEST
+              value: "64Mi"
+            - name: AGENT_INJECT_MEM_LIMIT
+              value: "128Mi"
+            - name: AGENT_INJECT_DEFAULT_TEMPLATE
+              value: "map"
+            - name: AGENT_INJECT_TEMPLATE_CONFIG_EXIT_ON_RETRY_FAILURE
+              value: "true"
+            
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          args:
+            - agent-inject
+            - 2>&1
+          livenessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+              scheme: HTTPS
+            failureThreshold: 2
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+              scheme: HTTPS
+            failureThreshold: 2
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            successThreshold: 1
+            timeoutSeconds: 5
