@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vault-agent-injector
-  namespace: default
+  namespace: vault-ns
   labels:
     app.kubernetes.io/name: vault-agent-injector
     app.kubernetes.io/instance: vault
