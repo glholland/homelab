@@ -29,7 +29,6 @@ spec:
         app.kubernetes.io/instance: vault
         component: server
     spec:
-      
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -52,6 +51,9 @@ spec:
             name: vault-config
         - name: home
           emptyDir: {}
+        - name: data
+          persistentVolumeClaim:
+            claimName: vault-vol-pvc
       containers:
         - name: vault
           image: hashicorp/vault:1.9.2
@@ -145,12 +147,3 @@ spec:
                   # to this pod while it's terminating
                   "sleep 5 && kill -SIGTERM $(pidof vault)",
                 ]
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 10Gi
