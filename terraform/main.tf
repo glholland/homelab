@@ -3,25 +3,23 @@ terraform {
     proxmox = {
       source = "telmate/proxmox"
       version = "2.9.6"
-    pm_log_levels = {
-    _default    = "debug"
-    _capturelog = ""
-    }
     }
   }
 }
 provider "proxmox" {
-  # url is the hostname (FQDN if you have one) for the proxmox host you'd like to connect to to issue the commands. my proxmox host is 'prox-1u'. Add /api2/json at the end for the API
-  pm_api_url = "https://192.168.0.200:8006/api2/json"
-  # api token id is in the form of: <username>@pam!<tokenId>
-  pm_api_token_id = "root@pam!terraform"
-  # this is the full secret wrapped in quotes. don't worry, I've already deleted this from my proxmox cluster by the time you read this post
-  pm_api_token_secret = "198f0ee2-9237-473a-bd2a-bf96d3b2841d"
-  # leave tls_insecure set to true unless you have your proxmox SSL certificate situation fully sorted out (if you do, you will know)
+  pm_api_url = "https://proxmox.garrettholland.com:8006/api2/json"
+  pm_api_token_id = "terraform-prov@pve!terraform"
+  pm_api_token_secret = "56be918a-e3f9-4c9c-a40a-b43ce56e929a"
   pm_tls_insecure = true
+  pm_log_enable = true
+  pm_log_file   = "terraform-plugin-proxmox.log"
+  pm_debug      = true
+  pm_log_levels = {
+    _default    = "debug"
+    _capturelog = ""
+  }
 }
-# resource is formatted to be "[type]" "[entity_name]" so in this case
-# we are looking to create a proxmox_vm_qemu entity named test_server
+
 resource "proxmox_vm_qemu" "test_server" {
   count = 1 # just want 1 for now, set to 0 and apply to destroy VM
   name = "test-vm-${count.index + 1}" #count.index starts at 0, so + 1 means this VM will be named test-vm-1 in proxmox
@@ -40,32 +38,25 @@ resource "proxmox_vm_qemu" "test_server" {
   bootdisk = "scsi0"
   disk {
     slot = 0
-    # set disk size here. leave it small for testing because expanding the disk takes time.
-    size = "10G"
+    size = "20G"
     type = "scsi"
-    storage = "local-zfs"
+    storage = "local-lvm"
     iothread = 1
   }
   
-  # if you want two NICs, just copy this whole network section and duplicate it
   network {
     model = "virtio"
     bridge = "vmbr0"
+    link_down = false
   }
-  # not sure exactly what this is for. presumably something about MAC addresses and ignore network changes during the life of the VM
   lifecycle {
     ignore_changes = [
       network,
     ]
   }
-  
-  # the ${count.index + 1} thing appends text to the end of the ip address
-  # in this case, since we are only adding a single VM, the IP will
-  # be 10.98.1.91 since count.index starts at 0. this is how you can create
-  # multiple VMs and have an IP assigned to each (.91, .92, .93, etc.)
-  ipconfig0 = "ip=192.168.0.22${count.index + 1}/24,gw=10.98.1.1"
-  
-  # sshkeys set using variables. the variable contains the text of the key.
+
+  ipconfig0 = "ip=192.168.0.22${count.index + 1}/24,gw=192.168.0.2"
+  searchdomain = "garrettholland.com"
   sshkeys = <<EOF
   ${var.ssh_key}
   EOF

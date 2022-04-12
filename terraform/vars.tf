@@ -1,9 +1,9 @@
 variable "ssh_key" {
-  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDcwZAOfqf6E6p8IkrurF2vR3NccPbMlXFPaFe2+Eh/8QnQCJVTL6PKduXjXynuLziC9cubXIDzQA+4OpFYUV2u0fAkXLOXRIwgEmOrnsGAqJTqIsMC3XwGRhR9M84c4XPAX5sYpOsvZX/qwFE95GAdExCUkS3H39rpmSCnZG9AY4nPsVRlIIDP+/6YSy9KWp2YVYe5bDaMKRtwKSq3EOUhl3Mm8Ykzd35Z0Cysgm2hR2poN+EB7GD67fyi+6ohpdJHVhinHi7cQI4DUp+37nVZG4ofYFL9yRdULlHcFa9MocESvFVlVW0FCvwFKXDty6askpg9yf4FnM0OSbhgqXzD austin@EARTH"
+  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDd1CXzwIpft5wVA/WJqvEk6DH4UmiLmmroZ0IXUcWYmXNWlnvhJx4eFrviz6GyUyDt9hdG69lBScIag5D6UD3ivVFYmBSXkwIludDgA6FeYQfVvpBCR25XgiabpWHhXItbXIYiigzeSF+lmJw6KF+0gTPPKVFtpg8h/eM8j26+lNbGiebYWNbZ0iBRNDZNmrxQAIsgWAszPvZSyZrkFvsLT8U258WsfZbW6q+WelGHQEL4dV2YkfMTZ/jJhq+cOv4Zr7tcbUSw3m90BJ45PhTYEozN0S1GAzyaDchcFabl/RRLa90x+vjJIrp8P/cZVlBunVNtL0HM121QqGiBj8nn garrett@RyzenDesk"
 }
 variable "proxmox_host" {
-    default = "192.168.0.200"
+    default = "pve"
 }
 variable "template_name" {
-    default = "fedora"
+    default = "fcos-tmplt"
 }
