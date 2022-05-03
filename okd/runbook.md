@@ -63,3 +63,4 @@ cp haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
 systemctl restart haproxy
 ```
 
+## TODO: Firewall settings. 🙃
