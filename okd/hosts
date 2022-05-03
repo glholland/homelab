@@ -1,0 +1,4 @@
+10.0.0.10 bootstrap.okd.garrettholland.com bootstrap
+10.0.0.11 master.okd.garrettholland.com master
+10.0.0.12 worker.okd.garrettholland.com worker
+10.0.0.1  api.okd.garrettholland.com api-int.okd.garrettholland.com

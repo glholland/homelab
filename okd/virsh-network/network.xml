@@ -1,0 +1,29 @@
+<network>
+  <name>kubernetes</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='virbr0' stp='on' delay='0'/>
+  <mac address='52:54:00:9b:66:95'/>
+  <dns>
+    <host ip='10.0.0.10'>
+      <hostname>bootstrap.okd.garrettholland.com</hostname>
+    </host>
+    <host ip='10.0.0.11'>
+      <hostname>master.okd.garrettholland.com</hostname>
+    </host>
+    <host ip='10.0.0.12'>
+      <hostname>worker.okd.garrettholland.com</hostname>
+    </host>
+  </dns>
+  <ip address='10.0.0.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='10.0.0.2' end='10.0.0.254'/>
+      <host mac='52:54:00:00:00:20' ip='10.0.0.10'/>
+      <host mac='52:54:00:00:00:21' ip='10.0.0.11'/>
+      <host mac='52:54:00:00:00:22' ip='10.0.0.12'/>
+    </dhcp>
+  </ip>
+</network>
