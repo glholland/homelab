@@ -5,7 +5,7 @@ This assumes the hypervisor will also be running HAProxy for the loadbalancer.
 
 ## Install dependencies
 ```bash
-sudo dnf install libvirt-devel libvirt-daemon-kvm libvirt-client libguestfs-tools-c virt-install
+sudo dnf install cockpit-machines libvirt-devel libvirt-daemon-kvm libvirt-client libguestfs-tools-c virt-install
 ```
 ...if running loadbalancer on hypervisor
 ```bash
@@ -19,7 +19,13 @@ sudo systemctl enable --now libvirtd
 
 ## Configure default libvirt network
 ```bash
-virsh net-create --file virsh-network/network.xml
+sudo virsh net-create --file virsh-network/network.xml
+sudo virsh net-autostart kubernetes
+# https://blog.khmersite.net/2021/03/create-libvirt-virtual-network-from-xml/
+sudo virsh net-edit kubernetes # Add blank new line and save
+sudo virsh net-destroy kubernetes
+sudo virsh net-start kubernetes
+sudo virsh net-autostart kubernetes
 ```
 
 
@@ -62,13 +68,67 @@ https://www.shellhacks.com/disable-selinux/
 ## Copy HAProxy cfg
 ...if running that on hypervisor
 ```bash
-cp haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
-systemctl restart haproxy
+sudo cp haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
+sudo systemctl restart haproxy
 ```
 
 ## TODO: Firewall settings. 🙃
 
+```bash
+firewall-cmd --permanent --new-service=all-ports-openshift
+firewall-cmd --permanent --service=all-ports-openshift --set-description="Service to open tcp/udp ports for Openshift"
+firewall-cmd --permanent --service=all-ports-openshift --add-port=1025-65535/tcp
+firewall-cmd --permanent --service=all-ports-openshift --add-port=1025-65535/udp
+firewall-cmd --permanent --zone=libvirt --add-service=all-ports-openshift
+firewall-cmd --permanent --zone=libvirt --add-service=http
+firewall-cmd --permanent --zone=libvirt --add-service=https
+firewall-cmd --permanent --zone=libvirt --add-service=rpc-bind
+firewall-cmd --reload
+```
+
+## Network bridging
+
+```bash
+# Delete hw if, add bridge, connect yum -y
+# https://lukas.zapletalovi.com/2015/09/fedora-22-libvirt-with-bridge.html
+yum -y install bridge-utils
+yum -y groupinstall "Virtualization Tools"
+export MAIN_CONN=eno1
+bash -x <<EOS
+systemctl stop libvirtd
+nmcli c delete "$MAIN_CONN"
+nmcli c delete "Wired connection 1"
+nmcli c add type bridge ifname br0 autoconnect yes con-name br0 stp off
+nmcli c modify br0 ipv4.addresses 192.168.0.200/24 ipv4.method manual
+nmcli c modify br0 ipv4.gateway 192.168.0.1
+nmcli c modify br0 ipv4.dns 9.9.9.9
+nmcli c add type bridge-slave autoconnect yes con-name "$MAIN_CONN" ifname "$MAIN_CONN" master br0
+systemctl restart NetworkManager
+systemctl start libvirtd
+systemctl enable libvirtd
+echo "net.ipv4.ip_forward = 1" | sudo tee /etc/sysctl.d/99-ipforward.conf
+sysctl -p /etc/sysctl.d/99-ipforward.conf
+EOS 
+```
+
 ## TODO: Initial OAuth config
+
+
+# During install
+
+Grab kubeconfig
+```bash
+export KUBECONFIG=/home/data/okd/auth/kubeconfig
+```
+
+## Approve CSRs
+```bash
+for csr in $(./oc get csr 2> /dev/null | grep -w 'Pending' | awk '{print $1}'); do
+  echo -n '  --> Approving CSR: ';
+  ./oc adm certificate approve "$csr" 2> /dev/null || true
+  output_delay=0
+done
+```
 
 ## Scale replicas down for 1 master running
 ```bash

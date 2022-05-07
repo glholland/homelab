@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -o errexit
-set -o pipefail
-set -o nounset
+#set -o errexit
+#set -o pipefail
+#set -o nounset
 
 BLUE='\033[1;34m'
 NC='\033[0m'
@@ -71,35 +71,38 @@ do
 
   # When I'm creating the worker, I'm stopping the bootstrap VM
 	if [ "$VM_NAME" = "worker" ]; then
-		virsh destroy bootstrap
+		echo -e "\n${BLUE}Creating worker...${NC}"
+		RAM_MB="12288"
 	fi;
 	
 	echo -e "\n${BLUE}Installing machine...${NC}"
-	virt-install --connect="qemu:///system" \
-				--name="${VM_NAME}" \
-				--vcpus="${VCPUS}" \
-				--memory="${RAM_MB}" \
-				--os-variant="fedora-coreos-stable"\
-				--import\
-				--graphics vnc\
-				--network network=default,model=virtio,mac="${MAC}" \
-				--disk="${IMAGE},cache=none"\
-				--cpu="host-passthrough"\
-				--noautoconsole \
-				--qemu-commandline="-fw_cfg name=opt/com.coreos/config,file=${IGNITION_CONFIG}"
+virt-install --connect="qemu:///system" \
+--name="${VM_NAME}" \
+--vcpus="${VCPUS}" \
+--memory="${RAM_MB}" \
+--os-variant="fedora-coreos-stable" \
+--import \
+--graphics vnc \
+--network network=kubernetes,model=virtio,mac="${MAC}" \
+--disk="${IMAGE},cache=none" \
+--cpu="host-passthrough" \
+--noautoconsole \
+--qemu-commandline="-fw_cfg name=opt/com.coreos/config,file=${IGNITION_CONFIG}"
 
   	### # If I'm deploying the master it means the bootstrap is launched already and I can wait for the bootstrap process to end before I setup my worker.
 	if [ "$VM_NAME" = "master" ]; then
 		echo -e "\n${BLUE}Waiting for bootstraping to complete...${NC}"
-		# While fail keep trying, bruteforce retry for my slow hdds
+		# Wait 1200 secs and then wait for bootstrap, then make Worker node and wait for bootstrap again cause slow CPU
 		while !
 		do
+			sleep 1200
 			./openshift-install --dir=/home/data/okd wait-for bootstrap-complete --log-level debug
 		done
 	fi;
 	j=$((j+1))
 done
-
+echo -e "\n${BLUE}Exiting loops, machines created, now waiting for completion of standup...${NC}"
+./openshift-install --dir=/home/data/okd wait-for bootstrap-complete --log-level debug
 ./openshift-install --dir=/home/data/okd wait-for install-complete --log-level debug
 
 echo -e "\n${BLUE}FIN!${NC}"
