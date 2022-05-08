@@ -18,4 +18,28 @@ systemctl enable --now podman.socket
 ln -s /run/podman/podman.sock /var/run/docker.sock
 ```
 
+# Ok so you need Podman 4 which isn't in any repo yet... 
+
+
+
+## Docker installation
+
+### Install
+```bash
+sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf update
+sudo dnf install -y docker-ce docker-ce-cli containerd.io --allowerasing
+# Allow erasing flag requiredd to erase any other nasty CNCF container managing technologies (ew...)
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
+### Install docker-cockpit
+Download docker-cockpit and unzip into 
+```bash
+wget https://github.com/mrevjd/cockpit-docker/releases/download/v2.0.3/cockpit-docker.tar.gz
+cp cockpit-docker.tar.gz /usr/share/cockpit/
+sudo tar xf cockpit-docker.tar.gz -C .
+```
+
 
