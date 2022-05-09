@@ -76,18 +76,18 @@ do
 	fi;
 	
 	echo -e "\n${BLUE}Installing machine...${NC}"
-virt-install --connect="qemu:///system" \
---name="${VM_NAME}" \
---vcpus="${VCPUS}" \
---memory="${RAM_MB}" \
---os-variant="fedora-coreos-stable" \
---import \
---graphics vnc \
---network network=kubernetes,model=virtio,mac="${MAC}" \
---disk="${IMAGE},cache=none" \
---cpu="host-passthrough" \
---noautoconsole \
---qemu-commandline="-fw_cfg name=opt/com.coreos/config,file=${IGNITION_CONFIG}"
+	virt-install --connect="qemu:///system" \
+		--name="${VM_NAME}" \
+		--vcpus="${VCPUS}" \
+		--memory="${RAM_MB}" \
+		--os-variant="fedora-coreos-stable" \
+		--import \
+		--graphics vnc \
+		--network network=kubernetes,model=virtio,mac="${MAC}" \
+		--disk="${IMAGE},cache=none" \
+		--cpu="host-passthrough" \
+		--noautoconsole \
+		--qemu-commandline="-fw_cfg name=opt/com.coreos/config,file=${IGNITION_CONFIG}"
 
   	### # If I'm deploying the master it means the bootstrap is launched already and I can wait for the bootstrap process to end before I setup my worker.
 	if [ "$VM_NAME" = "master" ]; then
