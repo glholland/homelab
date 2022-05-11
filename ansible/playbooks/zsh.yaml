@@ -1,0 +1,18 @@
+- hosts: rocky
+  gather_facts: no
+  user: garrett
+  tasks:
+    - name: install zsh stuff
+      become: true
+      apt:
+        state: latest
+        name:
+          - zsh
+          - zsh-autosuggestions
+          - zsh-syntax-highlighting
+          - autojump
+    - name: change user shell to zsh
+      become: yes
+      user:
+        name: "garrett"
+        shell: /bin/zsh
