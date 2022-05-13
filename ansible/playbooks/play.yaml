@@ -1,0 +1,61 @@
+- hosts: rocky
+  gather_facts: no
+  user: garrett
+  tasks:
+
+    - name: install zsh stuff
+      become: true
+      dnf:
+        state: latest
+        name:
+          - epel-release
+          - zsh
+          - git
+    
+    - name: install packages
+      dnf:
+        state: latest
+        name:
+          - htop
+          - sysstat
+          - git
+          - speedtest-cli
+          - wget
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg2
+          - software-properties-common
+          - pv
+          - jq
+          - rsync
+          - open-iscsi
+          - nfs-common
+
+    - name: permit traffic in default zone for https service
+      ansible.posix.firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+
+    - name: change user shell to zsh
+      become: yes
+      user:
+        name: "garrett"
+        shell: /bin/zsh
+
+    - name: Check if .zshrc exists
+      stat:
+        path: /home/garrett/.zshrc
+      register: zshrc
+
+    - name: Check if .oh-my-zsh exists
+      stat:
+        path: /home/garrett/.oh-my-zsh
+      register: oh_my_zsh
+
+    - name: Cloning  oh-my-zsh
+      git:
+        repo: https://github.com/ohmyzsh/ohmyzsh.git
+        dest: /home/garrett/.oh-my-zsh
+      when: not oh_my_zsh.stat.exists
