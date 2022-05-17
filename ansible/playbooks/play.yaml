@@ -3,6 +3,16 @@
   user: garrett
   tasks:
 
+    - name: Upgrade packages
+      become: true
+      dnf:
+        name: '*'
+        state: latest
+        update_cache: yes
+        update_only: no
+      register: reg_upgrade_ok
+      when: ev_security_only == "no" and reg_dnf_output_all is defined
+
     - name: install zsh stuff
       become: true
       dnf:
@@ -13,6 +23,7 @@
           - git
     
     - name: install packages
+      become: true
       dnf:
         state: latest
         name:
@@ -21,25 +32,28 @@
           - git
           - speedtest-cli
           - wget
-          - apt-transport-https
           - ca-certificates
           - curl
           - gnupg2
-          - software-properties-common
           - pv
           - jq
           - rsync
-          - open-iscsi
-          - nfs-common
 
-    - name: permit traffic in default zone for https service
-      ansible.posix.firewalld:
-        service: https
-        permanent: yes
-        state: enabled
+    - name: install kvm packages
+      become: true
+      dnf:
+        state: latest
+        name:
+          - cockpit-machines
+          - qemu-kvm
+          - libvirt-clients
+          - libvirt-daemon-system
+          - bridge-utils
+          - virtinst
+          - libvirt-daemon
 
     - name: change user shell to zsh
-      become: yes
+      become: true
       user:
         name: "garrett"
         shell: /bin/zsh

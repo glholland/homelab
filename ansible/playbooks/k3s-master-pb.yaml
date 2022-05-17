@@ -1,0 +1,20 @@
+- hosts: k3s-master
+  gather_facts: false
+  user: root
+  tasks:
+
+    # - name: install zsh stuff
+    #   become: true
+    #   dnf:
+    #     state: latest
+    #     name:
+    #       - zsh
+    #       - git
+
+    - name: Install k3s
+      become: true
+      # environment:
+      #   MY_ENV_VARIABLE: whatever_value
+      ansible.builtin.shell:
+        cmd: curl -sfL https://get.k3s.io | sh -
+        
