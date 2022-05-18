@@ -37,22 +37,8 @@ podman volume create pihole_dnsmasq
 ```
 
 ```bash
-podman run \
-–-name=pihole \
--e TZ=America/Los_Angeles \
--e WEBPASSWORD=Password1 \
--e SERVERIP=192.168.0.200 \
-–v pihole_pihole:/etc/pihole:Z \
--v pihole_dnsmasq:/etc/dnsmasq.d:Z \
-–-dns=127.0.0.1 \
-–-dns=1.1.1.1 \
--p 80:80 \
--p 67:67/udp \
--p 192.168.0.200:53:53/udp \
-pihole/pihole
-```
-
 podman run --name=pihole -e TZ=America/Detroit -e WEBPASSWORD=Password1 -e SERVERIP=192.168.0.200 -v pihole_pihole:/etc/pihole:Z -v pihole_dnsmasq:/etc/dnsmasq.d:Z --dns=127.0.0.1 --dns=1.1.1.1 -p 80:80 -p 67:67/udp -p 192.168.0.200:53:53/udp pihole/pihole
+```
 
 Add Pihole as a service --> `/etc/systemd/system/pihole.service`
 ```cfg
@@ -79,17 +65,4 @@ sudo systemctl enable pihole.service
 sudo systemctl start pihole.service
 ```
 
-podman run \
-–-name=mypihole \
--e TZ=America/Los_Angeles \
--e WEBPASSWORD=Password1 \
--e SERVERIP=192.168.1.103 \
-–v pihole_pihole:/etc/pihole:Z \
--v pihole_dnsmasq:/etc/dnsmasq.d:Z \
-–dns=127.0.0.1 –dns=1.1.1.1 \
--p 80:80 \
--p 67:67/udp \
--p 192.168.1.103:53:53/udp \
-pihole/pihole
-```
 
