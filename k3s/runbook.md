@@ -1,6 +1,7 @@
 # K3S VM install
 
 Install machines plugin for cockpit
+
 ```bash
 sudo dnf install cockpit-machines
 sudo mkdir /home/vm
@@ -25,13 +26,14 @@ virt-install \
             auto=true priority=critical vga=normal hostname=k3s-server inst.ks=file:/ks-master1.cfg"
 ```
 
-
 Install k3s
+
 ```bash
 curl -sfL https://get.k3s.io | sh -
 ```
 
 Install worker
+
 ```bash
 virt-install \
     --noautoconsole \
@@ -49,39 +51,73 @@ virt-install \
 ```
 
 Start stopped vms
+
 ```bash
 virsh list --state-shutoff --name | xargs virsh start
+```
+
+Install k3s server
+
+```bash
+  curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode '0644' --node-taint 'node-role.kubernetes.io/master=true:NoSchedule' --disable 'traefik' --kube-controller-manager-arg 'bind-address=0.0.0.0' --kube-controller-manager-arg 'address=0.0.0.0' --kube-proxy-arg 'metrics-bind-address=0.0.0.0' --kube-scheduler-arg 'bind-address=0.0.0.0' --kube-scheduler-arg 'address=0.0.0.0'
+
+cat /var/lib/rancher/k3s/server/node-token
+```
+
+K3s docs say to remove FW on RHEL
+
+```bash
+# https://rancher.com/docs/k3s/latest/en/advanced/#additional-preparation-for-red-hat-centos-enterprise-linux
+systemctl disable firewalld --now
+```
+
+Install K3S worker
+
+Install iscsi for longhorn
+
+```bash
+yum --setopt=tsflags=noscripts install iscsi-initiator-utils
+systemctl enable iscsid
+systemctl start iscsid
+```
+
+```bash
+curl -sfL https://get.k3s.io | K3S_URL='https://192.168.0.210:6443' K3S_TOKEN="" sh -s - agent --disable 'traefik' --node-label 'node_type=worker'
 ```
 
 ---
 
 # Installing K3d on Rocky Linux & Podman
+
 https://k3d.io/
 https://k3d.io/v5.4.0/usage/advanced/podman/
 
-## Install via bash script 
+## Install via bash script
+
 ```bash
 wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 ```
 
 ## Enable Podman
+
 ```bash
 systemctl enable --now podman.socket
 ```
 
 ## Make sym link from docker's socket to podman's socket
+
 ... for maximum trickery
+
 ```bash
 ln -s /run/podman/podman.sock /var/run/docker.sock
 ```
 
-# Ok so you need Podman 4 which isn't in any repo yet... 
-
-
+# Ok so you need Podman 4 which isn't in any repo yet...
 
 ## Docker installation
 
 ### Install
+
 ```bash
 sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 sudo dnf update
@@ -92,11 +128,11 @@ sudo systemctl start docker
 ```
 
 ### Install docker-cockpit
-Download docker-cockpit and unzip into 
+
+Download docker-cockpit and unzip into
+
 ```bash
 wget https://github.com/mrevjd/cockpit-docker/releases/download/v2.0.3/cockpit-docker.tar.gz
 cp cockpit-docker.tar.gz /usr/share/cockpit/
 sudo tar xf cockpit-docker.tar.gz -C .
 ```
-
-
