@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: pihole
+  name: pihole-web
+spec:
+  selector:
+    app: pihole
+  ports:
+    - name: web
+      protocol: TCP
+      port: 7074
+      targetPort: 80
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: pihole
+  name: pihole-dns-tcp
+spec:
+  selector:
+    app: pihole
+  ports:
+    - name: web-tcp
+      protocol: TCP
+      port: 53
+      targetPort: 53
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: pihole
+  name: pihole-dns-udp
+spec:
+  selector:
+    app: pihole
+  ports:
+    - name: web-udp
+      protocol: UDP
+      port: 53
+      targetPort: 53
+  type: LoadBalancer
+  externalTrafficPolicy: Local
