@@ -1,4 +1,27 @@
-# PiHole podman container as a service
+# Pi-Hole
+
+## PiHole as a VM
+
+```bash
+sudo virt-install \
+--name pihole \
+--ram 2048 \
+--disk /home/vm/pihole.img,,format=raw,size=25 \
+--vcpus 1 \
+--os-type linux \
+--network bridge=br0 \
+--noautoconsole \
+--graphics vnc \
+--os-variant fedora35 \
+--initrd-inject piholeks.cfg \
+--location https://download.fedoraproject.org/pub/fedora/linux/releases/36/Server/x86_64/os/ \
+--extra-args="auto=true priority=critical vga=normal hostname=pihole inst.ks=file:/piholeks.cfg"
+```
+
+## PiHole as a K8s workload
+
+
+## PiHole podman container as a service
 
 Remove systemd-resolve from being controlled by Network Manager
 ```bash
@@ -64,5 +87,3 @@ WantedBy=multi-user.target
 sudo systemctl enable pihole.service
 sudo systemctl start pihole.service
 ```
-
-
