@@ -37,7 +37,7 @@ Install worker
 ```bash
 virt-install \
     --noautoconsole \
-	--graphics vnc \
+    --graphics vnc \
     --name worker-1 \
     --memory 4096 \
     --vcpus 4 \
@@ -112,7 +112,7 @@ systemctl enable --now podman.socket
 ln -s /run/podman/podman.sock /var/run/docker.sock
 ```
 
-# Ok so you need Podman 4 which isn't in any repo yet...
+## Ok so you need Podman 4 which isn't in any repo yet...
 
 ## Docker installation
 
