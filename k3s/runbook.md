@@ -10,7 +10,7 @@ sudo mkdir /home/vm
 Install master vm
 
 ```bash
-wget https://gist.github.com/glholland/f4895e1c1a9fc7114605971c60b2ba96 -O ks-master1.cfg
+wget https://gist.githubusercontent.com/glholland/f4895e1c1a9fc7114605971c60b2ba96/raw/4b3fc95078e0befcfcb4004a99a70028554975ca/ks-master.cfg -O ks-master1.cfg
 virt-install \
     --noautoconsole \
 	--graphics vnc \
