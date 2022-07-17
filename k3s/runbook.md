@@ -59,7 +59,10 @@ virsh list --state-shutoff --name | xargs virsh start
 Install k3s server
 
 ```bash
-  curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode '0644' --node-taint 'node-role.kubernetes.io/master=true:NoSchedule' --disable 'traefik' --kube-controller-manager-arg 'bind-address=0.0.0.0' --kube-controller-manager-arg 'address=0.0.0.0' --kube-proxy-arg 'metrics-bind-address=0.0.0.0' --kube-scheduler-arg 'bind-address=0.0.0.0' --kube-scheduler-arg 'address=0.0.0.0'
+systemctl disable firewalld --now
+curl -sfL https://get.k3s.io |
+		INSTALL_K3S_EXEC="server --server https://192.168.0.210:6443" \
+			K3S_URL=https://192.168.0.210:6443 INSTALL_K3S_CHANNEL=v1.23 sh -
 
 cat /var/lib/rancher/k3s/server/node-token
 ```
@@ -71,68 +74,18 @@ K3s docs say to remove FW on RHEL
 systemctl disable firewalld --now
 ```
 
-Install K3S worker
-
-Install iscsi for longhorn
+[AV K3S Agent install](https://github.com/ArthurVardevanyan/HomeLab/blob/production/main.bash#L236-L241)
 
 ```bash
-yum --setopt=tsflags=noscripts install iscsi-initiator-utils
-systemctl enable iscsid
-systemctl start iscsid
+export K3S_TOKEN=""
+export RESERVED="--kubelet-arg system-reserved=cpu=250m,memory=250Mi --kubelet-arg kube-reserved=cpu=250m,memory=250Mi"
+systemctl disable firewalld --now # For RHEL/Fedora
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="${RESERVED}" K3S_URL=https://192.168.0.210:6443 INSTALL_K3S_CHANNEL=v1.23 sh -
+
 ```
 
-```bash
-curl -sfL https://get.k3s.io | K3S_URL='https://192.168.0.210:6443' K3S_TOKEN="" sh -s - agent --disable 'traefik' --node-label 'node_type=worker'
-```
-
----
-
-# Installing K3d on Rocky Linux & Podman
-
-https://k3d.io/
-https://k3d.io/v5.4.0/usage/advanced/podman/
-
-## Install via bash script
+Get kubeconfig and do more things
 
 ```bash
-wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-```
-
-## Enable Podman
-
-```bash
-systemctl enable --now podman.socket
-```
-
-## Make sym link from docker's socket to podman's socket
-
-... for maximum trickery
-
-```bash
-ln -s /run/podman/podman.sock /var/run/docker.sock
-```
-
-## Ok so you need Podman 4 which isn't in any repo yet...
-
-## Docker installation
-
-### Install
-
-```bash
-sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
-sudo dnf update
-sudo dnf install -y docker-ce docker-ce-cli containerd.io --allowerasing
-# Allow erasing flag requiredd to erase any other nasty CNCF container managing technologies (ew...)
-sudo systemctl enable docker
-sudo systemctl start docker
-```
-
-### Install docker-cockpit
-
-Download docker-cockpit and unzip into
-
-```bash
-wget https://github.com/mrevjd/cockpit-docker/releases/download/v2.0.3/cockpit-docker.tar.gz
-cp cockpit-docker.tar.gz /usr/share/cockpit/
-sudo tar xf cockpit-docker.tar.gz -C .
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 ```
