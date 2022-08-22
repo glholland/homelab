@@ -13,7 +13,7 @@ Install master vm
 wget https://gist.githubusercontent.com/glholland/f4895e1c1a9fc7114605971c60b2ba96/raw/4b3fc95078e0befcfcb4004a99a70028554975ca/ks-master.cfg -O ks-master1.cfg
 virt-install \
     --noautoconsole \
-	--graphics vnc \
+    -graphics vnc \
     --name master-1 \
     --memory 4096 \
     --vcpus 4 \
