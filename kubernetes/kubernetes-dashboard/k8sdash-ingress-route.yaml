@@ -5,11 +5,29 @@ metadata:
   namespace: kubernetes-dashboard
 spec:
   entryPoints:
+    - web
     - websecure
+  tls:
+    domains:
+      - main: k8s.garrettholland.com
   routes:
-  - kind: Rule
-    match: Host(`k8s.garrettholland.com`)
-    services:
-    - kind: Service
-      name: kubernetes-dashboard
-      port: 443
+    - kind: Rule
+      match: Host(`k8s.garrettholland.com`)
+      middlewares:
+        - name: https-redirect
+      services:
+        - kind: Service
+          name: kubernetes-dashboard
+          port: 443
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+  namespace: kubernetes-dashboard
+  labels:
+    app.kubernetes.io/instance: kubernetes-dashboard
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true

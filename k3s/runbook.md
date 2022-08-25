@@ -10,10 +10,9 @@ sudo mkdir /home/vm
 Install master vm
 
 ```bash
-wget https://gist.githubusercontent.com/glholland/f4895e1c1a9fc7114605971c60b2ba96/raw/4b3fc95078e0befcfcb4004a99a70028554975ca/ks-master.cfg -O ks-master1.cfg
 virt-install \
     --noautoconsole \
-    -graphics vnc \
+    --graphics vnc \
     --name master-1 \
     --memory 4096 \
     --vcpus 4 \
@@ -44,7 +43,7 @@ virt-install \
     --network bridge=br0 \
     --disk /home/vm/k3s-worker1.img,,format=raw,size=25 \
     --os-variant fedora35 \
-    --location https://download.fedoraproject.org/pub/fedora/linux/releases/36/Server/x86_64/os/ \
+    --location /home/vm/Fedora-Server-dvd-x86_64-36-1.5.iso \
     --initrd-inject ks-worker1.cfg \
     --extra-args="\
             auto=true priority=critical vga=normal hostname=k3s-worker-1 inst.ks=file:/ks-worker1.cfg"
@@ -59,10 +58,7 @@ virsh list --state-shutoff --name | xargs virsh start
 Install k3s server
 
 ```bash
-systemctl disable firewalld --now
-curl -sfL https://get.k3s.io |
-		INSTALL_K3S_EXEC="server --server https://192.168.0.210:6443" \
-			K3S_URL=https://192.168.0.210:6443 INSTALL_K3S_CHANNEL=v1.23 sh -
+curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode '0644' --node-taint 'node-role.kubernetes.io/master=true:NoSchedule' --disable 'traefik'
 
 cat /var/lib/rancher/k3s/server/node-token
 ```
@@ -77,12 +73,18 @@ systemctl disable firewalld --now
 [AV K3S Agent install](https://github.com/ArthurVardevanyan/HomeLab/blob/production/main.bash#L236-L241)
 
 ```bash
-export K3S_TOKEN=""
-export RESERVED="--kubelet-arg system-reserved=cpu=250m,memory=250Mi --kubelet-arg kube-reserved=cpu=250m,memory=250Mi"
-systemctl disable firewalld --now # For RHEL/Fedora
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="${RESERVED}" K3S_URL=https://192.168.0.210:6443 INSTALL_K3S_CHANNEL=v1.23 sh -
-
+curl -sfL https://get.k3s.io | K3S_URL='https://192.168.1.210:6443' K3S_TOKEN="" sh - agent --node-label 'node_type=worker'
 ```
+
+Install iscsi for longhorn
+
+```bash
+yum --setopt=tsflags=noscripts install iscsi-initiator-utils
+systemctl enable iscsid
+systemctl start iscsid
+```
+
+---
 
 Get kubeconfig and do more things
 
