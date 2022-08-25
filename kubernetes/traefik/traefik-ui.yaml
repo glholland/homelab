@@ -1,0 +1,17 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-ui
+  namespace: traefik
+  labels:
+    app: traefik
+    app.kubernetes.io/instance: traefik
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`traefik.garrettholland.com`)
+      kind: Rule
+      services:
+        - name: traefik-dashboard
+          port: 9000
