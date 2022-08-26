@@ -4,8 +4,9 @@ metadata:
   labels:
     app: unifi-controller
   name: unifi-controller
+  namespace: unifi
 spec:
-  replicas: 2
+  replicas: 1
   serviceName: unifi-controller
   selector:
     matchLabels:
@@ -23,7 +24,7 @@ spec:
               value: "1000"
             - name: PUID
               value: "1000"
-          image: linuxserver/unifi-controller:7.0.23
+          image: linuxserver/unifi-controller:7.2.92
           name: unifi-controller
           ports:
             - containerPort: 3478
@@ -43,4 +44,4 @@ spec:
       volumes:
         - name: unifi
           persistentVolumeClaim:
-            claimName: unifi-lh-pvc
+            claimName: unifi-pvc

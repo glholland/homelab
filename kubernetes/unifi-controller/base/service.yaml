@@ -1,38 +1,55 @@
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
+  label:
     app: unifi-controller
   name: unifi-controller
+  namespace: unifi
 spec:
+  type: ClusterIP
+  selector:
+    app: unifi-controller
   ports:
-    - name: "3478"
+    - name: "8443"
+      port: 8443
+      targetPort: 8443
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: unifi-controller-lb
+  name: unifi-controller-lb
+  namespace: unifi
+spec:
+  type: LoadBalancer
+  ports:
+    - name: "stun"
       port: 3478
       protocol: UDP
       targetPort: 3478
-    - name: "10001"
+    - name: "unifi-disc"
       port: 10001
       protocol: UDP
       targetPort: 10001
-    - name: "8080"
+    - name: "device-comm"
       port: 8080
       targetPort: 8080
     - name: "8081"
       port: 8081
       targetPort: 8081
-    - name: "8443"
-      port: 8443
-      targetPort: 8443
-    - name: "8843"
+    - name: "secure-redirect"
       port: 8843
       targetPort: 8843
-    - name: "8880"
+    - name: "http-redirect"
       port: 8880
       targetPort: 8880
-    - name: "6789"
+    - name: "speedtest"
       port: 6789
       targetPort: 6789
+    - name: "unifi-disc-l2"
+      port: 1900
+      protocol: UDP
   selector:
     app: unifi-controller
-  externalIPs:
-    - "192.168.0.210"

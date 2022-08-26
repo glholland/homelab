@@ -1,0 +1,35 @@
+# https://medium.com/@reefland/migrating-unifi-network-controller-from-docker-to-kubernetes-5aac8ed8da76
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: unifi-controller
+  namespace: unifi
+spec:
+  entryPoints:
+    - web
+    - websecure
+  tls:
+    domains:
+      - main: unifi.garrettholland.com
+  routes:
+    - kind: Rule
+      match: Host(`unifi.garrettholland.com`)
+      middlewares:
+        - name: https-redirect
+      services:
+        - kind: Service
+          name: unifi-controller
+          scheme: https
+          port: 8443
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+  namespace: unifi
+  labels:
+    app.kubernetes.io/instance: unifi-controller
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
