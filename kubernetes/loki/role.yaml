@@ -3,14 +3,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: release-name-loki
-  namespace: default
+  namespace: loki
   labels:
     app: loki
-    chart: loki-2.10.1
-    heritage: Helm
-    release: release-name
 rules:
-- apiGroups:      ['extensions']
-  resources:      ['podsecuritypolicies']
-  verbs:          ['use']
-  resourceNames:  [release-name-loki]
+  - apiGroups: ["extensions"]
+    resources: ["podsecuritypolicies"]
+    verbs: ["use"]
+    resourceNames: [release-name-loki]

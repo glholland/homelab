@@ -3,14 +3,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: release-name-loki
-  namespace: default
+  namespace: loki
   labels:
     app: loki
-    chart: loki-2.10.1
-    release: release-name
-    heritage: Helm
-  annotations:
-    {}
 spec:
   type: ClusterIP
   ports:

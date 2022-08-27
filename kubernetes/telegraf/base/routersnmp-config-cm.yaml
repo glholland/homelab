@@ -2,10 +2,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: routersnmp-config-cm
-  namespace: telegraf-ns
+  namespace: telegraf
   labels:
     k8s-app: telegraf
-data: 
+data:
   routersnmp.conf: |+
     [[inputs.snmp]]
       [[inputs.snmp.tags]]
@@ -34,7 +34,7 @@ data:
       # Don't want these rows from UCD-DISKIO-MIB::diskIOTable
       [inputs.snmp.tagdrop]
         diskIODevice = [ "loop*", "ram*" ]
-      ## 
+      ##
       ## System details
       ##
       #  System name (hostname)
@@ -93,7 +93,7 @@ data:
       ##
       ## Host performance metrics
       ##
-      #  System Load Average 
+      #  System Load Average
       [[inputs.snmp.table]]
         oid = "UCD-SNMP-MIB::laTable"
         [[inputs.snmp.table.field]]
@@ -220,7 +220,7 @@ data:
       [[inputs.snmp.table]]
         index_as_tag = true
         oid = "IP-MIB::ipSystemStatsTable"
-      ## 
+      ##
       ## ICMP Metrics
       ##
       #  ICMP statistics

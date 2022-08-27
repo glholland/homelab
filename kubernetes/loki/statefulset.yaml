@@ -3,14 +3,10 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-loki
-  namespace: default
+  namespace: loki
   labels:
     app: loki
-    chart: loki-2.10.1
-    release: release-name
-    heritage: Helm
-  annotations:
-    {}
+  annotations: {}
 spec:
   podManagementPolicy: OrderedReady
   replicas: 1
@@ -38,8 +34,7 @@ spec:
         runAsGroup: 10001
         runAsNonRoot: true
         runAsUser: 10001
-      initContainers:
-        []
+      initContainers: []
       containers:
         - name: loki
           image: "grafana/loki:2.4.2"
@@ -68,17 +63,13 @@ spec:
               path: /ready
               port: http-metrics
             initialDelaySeconds: 45
-          resources:
-            {}
+          resources: {}
           securityContext:
             readOnlyRootFilesystem: true
           env:
-      nodeSelector:
-        {}
-      affinity:
-        {}
-      tolerations:
-        []
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
       terminationGracePeriodSeconds: 4800
       volumes:
         - name: tmp
