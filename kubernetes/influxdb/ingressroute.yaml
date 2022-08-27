@@ -4,10 +4,16 @@ metadata:
   name: influxdb
   namespace: influxdb
 spec:
+  entryPoints:
+    - web
+    - websecure
+  tls:
+    domains:
+      - main: influxdb.garrettholland.com
   routes:
     - kind: Rule
-      match: Host(`influx.garrettholland.com`)
+      match: Host(`influxdb.garrettholland.com`)
       services:
         - kind: Service
-          name: influxdb-service
+          name: influxdb
           port: 8086
