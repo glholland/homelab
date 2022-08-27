@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: influxdb-deployment
-  namespace: influxdb-ns
+  name: influxdb
+  namespace: influxdb
 spec:
   selector:
     matchLabels:
@@ -14,7 +14,7 @@ spec:
         app: influxdb
     spec:
       containers:
-        - image: influxdb:1.7.4
+        - image: influxdb:1.8.10
           name: influxdb
           ports:
             - containerPort: 8086
@@ -27,7 +27,7 @@ spec:
               readOnly: true
           envFrom:
             - secretRef:
-                name: influxdb-secrets
+                name: influxdb
           resources:
             limits:
               cpu: 2000m
@@ -41,4 +41,4 @@ spec:
             claimName: influxdb-pvc
         - name: influxdb-config
           configMap:
-            name: influxdb-config
+            name: influxdb
