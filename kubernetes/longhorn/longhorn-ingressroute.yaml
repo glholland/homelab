@@ -6,10 +6,26 @@ metadata:
 spec:
   entryPoints:
     - web
+    - websecure
+  tls:
+    domains:
+      - main: longhorn.garretthollandd.com
   routes:
-  - kind: Rule
-    match: Host(`longhorn.garrettholland.com`)
-    services:
-    - kind: Service
-      name: longhorn-frontend
-      port: 80
+    - kind: Rule
+      match: Host(`longhorn.garrettholland.com`)
+      services:
+        - kind: Service
+          name: longhorn-frontend
+          port: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+  namespace: longhorn-system
+  labels:
+    app.kubernetes.io/instance: longhorn
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
