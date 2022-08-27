@@ -1,0 +1,33 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana
+  namespace: grafana
+spec:
+  entryPoints:
+    - web
+    - websecure
+  tls:
+    domains:
+      - main: grafana.garrettholland.com
+  routes:
+    - kind: Rule
+      match: Host(`grafana.garrettholland.com`)
+      # middlewares:
+      #   - name: https-redirect
+      services:
+        - kind: Service
+          name: grafana
+          port: 3000
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+  namespace: grafana
+  labels:
+    app.kubernetes.io/instance: grafana
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true

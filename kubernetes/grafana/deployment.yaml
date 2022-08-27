@@ -4,7 +4,7 @@ metadata:
   labels:
     app: grafana
   name: grafana
-  namespace: grafana-ns
+  namespace: grafana
 spec:
   selector:
     matchLabels:
@@ -20,7 +20,7 @@ spec:
           - 0
       containers:
         - name: grafana
-          image: grafana/grafana:8.4.3-ubuntu
+          image: grafana/grafana:9.1.1-ubuntu
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000

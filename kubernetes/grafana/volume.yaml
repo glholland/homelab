@@ -1,0 +1,58 @@
+apiVersion: longhorn.io/v1beta1
+kind: Volume
+metadata:
+  labels:
+    longhornvolume: grafana
+    app.kubernetes.io/instance: grafana
+  name: grafana
+  namespace: longhorn-system
+spec:
+  replicaAutoBalance: disabled
+  dataLocality: disabled
+  accessMode: rwo
+  engineImage: longhornio/longhorn-engine:v1.2.3
+  frontend: blockdev
+  numberOfReplicas: 2
+  size: "5368709120"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: grafana-pvc
+  namespace: grafana
+  labels:
+    app.kubernetes.io/instance: grafana
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: grafana-pv
+  storageClassName: longhorn-static
+  volumeMode: Filesystem
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: grafana-pv
+  labels:
+    app.kubernetes.io/instance: grafana
+spec:
+  capacity:
+    storage: 1Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: grafana
+    fsType: ext4
+    volumeAttributes:
+      numberOfReplicas: "2"
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    kind: PersistentVolumeClaim
+    name: grafana-pvc
+    namespace: grafana
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: longhorn-static
+  volumeMode: Filesystem
