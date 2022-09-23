@@ -206,7 +206,7 @@ data:
       # The GETBULK max-repetitions parameter
       max_repetitions = 50
       # Measurement name
-      name = "snmp.EdgeOS"
+      # name = "snmp.EdgeOS"
       ##
       ## Exclusions
       ##
@@ -556,15 +556,6 @@ data:
     #   precision = "s"
     #   [outputs.influxdb.tagpass]
     #     influxdb_database = ["routersyslog"]
-    [[outputs.influxdb]]
-        alias = "routersnmpdb"
-      urls = ["${INFLUX_URL}"]
-      username = "${INFLUXDB_USER}"
-      password = "${INFLUXDB_USER_PASSWORD}"
-      database = "${INFLUX_ROUTERSNMP_DB}"
-      precision = "s"
-      [outputs.influxdb.tagpass]
-        influxdb_database = ["routersnmp"]
     [[outputs.influxdb]]
         alias = "apsnmpdb"
       urls = ["${INFLUX_URL}"]

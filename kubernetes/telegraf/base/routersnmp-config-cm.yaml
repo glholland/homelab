@@ -11,9 +11,9 @@ data:
       [[inputs.snmp.tags]]
         influxdb_database = ["routersnmp"]
       # List of agents to poll
-      agents = ["192.168.0.1"]
+      agents = ["192.168.1.1"]
       # Polling interval
-      interval = "30s"
+      interval = "10s"
       # Timeout for each SNMP query.
       timeout = "5s"
       # Number of retries to attempt within timeout.
@@ -354,3 +354,12 @@ data:
       [[inputs.snmp.field]]
         name = "snmpOutGetResponses"
         oid = "SNMPv2-MIB::snmpOutGetResponses.0"
+    [[outputs.influxdb]]
+        alias = "routersnmpdb"
+      urls = ["${INFLUX_URL}"]
+      username = "${INFLUXDB_USER}"
+      password = "${INFLUXDB_USER_PASSWORD}"
+      database = "${INFLUX_ROUTERSNMP_DB}"
+      precision = "s"
+      [outputs.influxdb.tagpass]
+        influxdb_database = ["routersnmp"]
