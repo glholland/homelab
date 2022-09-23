@@ -13,7 +13,7 @@ spec:
   engineImage: longhornio/longhorn-engine:v1.2.3
   frontend: blockdev
   numberOfReplicas: 2
-  size: "5368709120"
+  size: "16106127360"
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -27,7 +27,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 15Gi
   volumeName: influxdb-pv
   storageClassName: longhorn-static
   volumeMode: Filesystem
@@ -40,7 +40,7 @@ metadata:
     app.kubernetes.io/instance: influxdb
 spec:
   capacity:
-    storage: 5Gi
+    storage: 15Gi
   csi:
     driver: driver.longhorn.io
     volumeHandle: influxdb
