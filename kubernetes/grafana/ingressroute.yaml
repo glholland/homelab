@@ -8,8 +8,7 @@ spec:
     - web
     - websecure
   tls:
-    domains:
-      - main: grafana.garrettholland.com
+    secretName: grafana-cert
   routes:
     - kind: Rule
       match: Host(`grafana.garrettholland.com`)
