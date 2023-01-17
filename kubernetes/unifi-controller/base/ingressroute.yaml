@@ -9,8 +9,7 @@ spec:
     - web
     - websecure
   tls:
-    domains:
-      - main: unifi.garrettholland.com
+    secretName: unifi-cert
   routes:
     - kind: Rule
       match: Host(`unifi.garrettholland.com`)
