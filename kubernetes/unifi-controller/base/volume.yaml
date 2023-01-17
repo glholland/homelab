@@ -13,7 +13,7 @@ spec:
   engineImage: longhornio/longhorn-engine:v1.2.3
   frontend: blockdev
   numberOfReplicas: 2
-  size: "1073741824"
+  size: "10737418240"
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -27,7 +27,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 10Gi
   volumeName: unifi-pv
   storageClassName: longhorn-static
   volumeMode: Filesystem
@@ -40,7 +40,7 @@ metadata:
     app.kubernetes.io/instance: unifi
 spec:
   capacity:
-    storage: 1Gi
+    storage: 10Gi
   csi:
     driver: driver.longhorn.io
     volumeHandle: unifi
