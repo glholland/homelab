@@ -1,63 +1,112 @@
 terraform {
   required_providers {
     proxmox = {
-      source = "telmate/proxmox"
-      version = "2.9.6"
+      source  = "bpg/proxmox"
+      version = "0.54.0"
     }
   }
 }
+
 provider "proxmox" {
-  pm_api_url = "https://proxmox.garrettholland.com:8006/api2/json"
-  pm_api_token_id = "terraform-prov@pve!terraform"
-  pm_api_token_secret = "56be918a-e3f9-4c9c-a40a-b43ce56e929a"
-  pm_tls_insecure = true
-  pm_log_enable = true
-  pm_log_file   = "terraform-plugin-proxmox.log"
-  pm_debug      = true
-  pm_log_levels = {
-    _default    = "debug"
-    _capturelog = ""
+  endpoint  = var.virtual_environment_endpoint
+  username  = var.virtual_environment_username
+  password  = "password"
+  api_token = var.virtual_environment_api_token
+  insecure  = true
+  ssh {
+    agent    = true
+    username = "terraform"
   }
 }
+resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
+  name        = "terraform-provider-proxmox-ubuntu-vm"
+  description = "Managed by Terraform"
+  tags        = ["terraform", "ubuntu"]
 
-resource "proxmox_vm_qemu" "test_server" {
-  count = 1 # just want 1 for now, set to 0 and apply to destroy VM
-  name = "test-vm-${count.index + 1}" #count.index starts at 0, so + 1 means this VM will be named test-vm-1 in proxmox
-  # this now reaches out to the vars file. I could've also used this var above in the pm_api_url setting but wanted to spell it out up there. target_node is different than api_url. target_node is which node hosts the template and thus also which node will host the new VM. it can be different than the host you use to communicate with the API. the variable contains the contents "prox-1u"
-  target_node = var.proxmox_host
-  # another variable with contents "ubuntu-2004-cloudinit-template"
-  clone = var.template_name
-  # basic VM settings here. agent refers to guest agent
-  agent = 1
-  os_type = "cloud-init"
-  cores = 2
-  sockets = 1
-  cpu = "host"
-  memory = 2048
-  scsihw = "virtio-scsi-pci"
-  bootdisk = "scsi0"
+  node_name = "pve"
+  vm_id     = 4321
+
+  agent {
+    # read 'Qemu guest agent' section, change to true only when ready
+    enabled = false
+  }
+
+  startup {
+    order      = "3"
+    up_delay   = "60"
+    down_delay = "60"
+  }
+
   disk {
-    slot = 0
-    size = "20G"
-    type = "scsi"
-    storage = "local-lvm"
-    iothread = 1
-  }
-  
-  network {
-    model = "virtio"
-    bridge = "vmbr0"
-    link_down = false
-  }
-  lifecycle {
-    ignore_changes = [
-      network,
-    ]
+    datastore_id = "local-lvm"
+    file_id      = "local-lvm:iso/jammy-server-cloudimg-amd64.img"
+    interface    = "scsi0"
   }
 
-  ipconfig0 = "ip=192.168.0.22${count.index + 1}/24,gw=192.168.0.2"
-  searchdomain = "garrettholland.com"
-  sshkeys = <<EOF
-  ${var.ssh_key}
-  EOF
+  initialization {
+    ip_config {
+      ipv4 {
+        address = "10.0.0.101/24"
+        gateway = "10.0.0.1"
+      }
+    }
+
+    dns {
+      domain  = "garrettholland.com"
+      servers = ["10.0.0.1"]
+    }
+
+    user_account {
+      keys     = [trimspace(tls_private_key.ubuntu_vm_key.public_key_openssh)]
+      password = random_password.ubuntu_vm_password.result
+      username = "ubuntu"
+    }
+
+    #user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
+  }
+
+  network_device {
+    bridge = "vmbr0"
+  }
+
+  operating_system {
+    type = "l26"
+  }
+
+  tpm_state {
+    version = "v2.0"
+  }
+
+}
+
+resource "proxmox_virtual_environment_download_file" "latest_ubuntu_22_jammy_qcow2_img" {
+  content_type = "iso"
+  datastore_id = "local"
+  node_name    = "pve"
+  url          = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+}
+
+resource "random_password" "ubuntu_vm_password" {
+  length           = 16
+  override_special = "_%@"
+  special          = true
+}
+
+resource "tls_private_key" "ubuntu_vm_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+output "ubuntu_vm_password" {
+  value     = random_password.ubuntu_vm_password.result
+  sensitive = true
+}
+
+output "ubuntu_vm_private_key" {
+  value     = tls_private_key.ubuntu_vm_key.private_key_pem
+  sensitive = true
+}
+
+output "ubuntu_vm_public_key" {
+  value = tls_private_key.ubuntu_vm_key.public_key_openssh
 }
