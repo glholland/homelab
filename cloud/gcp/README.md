@@ -4,10 +4,15 @@
 
 Make CLI identity available to TF
 
-// TODO, seed secrets for tfvars and make .gitignore
-
 ```bash
 gcloud auth application-default login
+```
+
+Login & seed secrets
+
+```bash
+gcloud auth login
+gcloud secrets versions access 1 --secret=secrets_tfvars --out-file=secrets.tfvars
 ```
 
 Apply TF!

@@ -1,6 +1,7 @@
 provider "google" {
 	user_project_override = true
 	billing_project = var.gcp_project_id
+  project = var.gcp_project_id
 }
 
 terraform {
