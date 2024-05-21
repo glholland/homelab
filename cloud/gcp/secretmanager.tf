@@ -13,3 +13,15 @@ resource "google_secret_manager_secret" "secrets_tfvars" {
     }
   }
 }
+
+## Proxmox
+
+resource "google_secret_manager_secret" "proxmox_tfvars" {
+  secret_id = "proxmox_tfvars"
+  labels = {
+    label = "proxmox"
+  }
+  replication {
+    auto {}
+  }
+}
