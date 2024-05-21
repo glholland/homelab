@@ -25,3 +25,9 @@ resource "google_secret_manager_secret" "proxmox_tfvars" {
     auto {}
   }
 }
+
+resource "google_secret_manager_secret_version" "secret-version-basic" {
+  secret = google_secret_manager_secret.proxmox_tfvars.id
+  secret_data = file("../../proxmox/terraform/secrets.tfvars")
+  deletion_policy = "DISABLE"
+  }
