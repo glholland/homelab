@@ -1,7 +1,6 @@
 data "google_billing_account" "account" {
   display_name = "My Billing Account"
   open         = true
-
 }
 
 resource "google_billing_budget" "budget" {
@@ -14,17 +13,13 @@ resource "google_billing_budget" "budget" {
     }
   }
   threshold_rules {
-      threshold_percent =  0.5
+    threshold_percent =  0.5
   }
-
 	depends_on = [ google_project_service.gcp_services ]
 }
 
 resource "google_billing_account_iam_binding" "admin" {
   billing_account_id = data.google_billing_account.account.id
   role               = "roles/billing.admin"
-  members = [
-    "user:${var.gcp_account}"
-  ]
-
+  members            = ["user:${var.gcp_account}"]
 }

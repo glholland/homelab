@@ -1,17 +1,17 @@
 resource "google_secret_manager_secret" "secrets_tfvars" {
   secret_id = "secrets_tfvars"
-
-  labels = {
+  labels    = {
     label = "terraform"
   }
-
   replication {
-    user_managed {
-      replicas {
-        location = "us-central1"
-			}
-    }
+    auto {}
   }
+}
+
+resource "google_secret_manager_secret_version" "secrets_tfvars" {
+  secret          = google_secret_manager_secret.secrets_tfvars.id
+  secret_data     = file("secrets.tfvars")
+  deletion_policy = "DISABLE"
 }
 
 ## Proxmox
@@ -26,8 +26,8 @@ resource "google_secret_manager_secret" "proxmox_tfvars" {
   }
 }
 
-resource "google_secret_manager_secret_version" "secret-version-basic" {
-  secret = google_secret_manager_secret.proxmox_tfvars.id
-  secret_data = file("../../proxmox/terraform/secrets.tfvars")
+resource "google_secret_manager_secret_version" "proxmox_tfvars" {
+  secret          = google_secret_manager_secret.proxmox_tfvars.id
+  secret_data     = file("../../proxmox/terraform/secrets.tfvars")
   deletion_policy = "DISABLE"
-  }
+}
