@@ -1,11 +1,5 @@
 # Proxmox Terraform Usage
 
-Make CLI identity available to TF
-
-```bash
-gcloud auth application-default login
-```
-
 Login & seed secrets
 
 ```bash
