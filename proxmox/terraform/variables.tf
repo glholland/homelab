@@ -20,3 +20,17 @@ variable "virtual_environment_ssh_password" {
 	type = string
 	sensitive = true
 }
+
+variable "desktop_pub_key" {
+	type = string
+	sensitive = true
+}
+
+variable "hook_script_id" {
+	type = string
+}
+
+variable "dns_domain" {
+	type = string
+	sensitive = true
+}
