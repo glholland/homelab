@@ -1,6 +1,7 @@
 # Fedora WSL
 
 [Fedora on Windows](https://www.linuxfordevices.com/tutorials/linux/install-fedora-on-windows)
+[WSL Conf](https://learn.microsoft.com/en-us/windows/wsl/wsl-config)
 
 A simple Fedora container running on WSL
 
