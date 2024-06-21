@@ -1,0 +1,126 @@
+- hosts: localhost
+  gather_facts: no
+  user: garrett
+  become: true
+  tasks:
+
+    # - name: Add GCloud repo
+    #   yum_repository:
+    #     name: Google Cloud SDK
+    #     description: “Repo for GCloud SDK”
+    #     baseurl: “https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-x86_64”
+    #     gpgcheck: yes
+    #     gpgkey: https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+    # - name: Install GCloud CLI
+    #   yum:
+    #     name: "google-cloud-cli"
+    #     state: latest
+
+    - name: Upgrade all yum packages
+      yum:
+        name: "*"
+        state: latest
+
+    - name: install zsh stuff
+      become: true
+      dnf:
+        state: latest
+        name:
+          - zsh
+          - git
+
+    - name: install packages
+      become: true
+      dnf:
+        state: latest
+        name:
+          - htop
+          - sysstat
+          - git
+          - gh
+          - speedtest-cli
+          - wget
+          - ca-certificates
+          - curl
+          - bind-utils
+          - gnupg2
+          - pv
+          - jq
+          - rsync
+          - podman
+          - buildah
+          - skopeo
+          - iproute
+          - dnf-plugins-core
+          - nmstate
+
+    - name: Add hashicorp Repo
+      ansible.builtin.yum_repository:
+        name: hashicorp.repo
+        description: hashicorp.repo
+        baseurl: https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
+
+    - name: Install Terraform
+      yum:
+        state: latest
+        name:
+          - terraform
+
+    - name: Download YQ
+      get_url:
+        url: https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        dest: /usr/local/bin/yq
+
+    - name: Download openshift-install
+      get_url:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.14.9/openshift-install-linux-4.14.9.tar.gz
+        dest: /tmp/go.openshift-install-amd64.tar.gz
+    - name: Extract openshift-install
+      unarchive:
+        src: /tmp/go.openshift-install-amd64.tar.gz
+        dest: /usr/local
+        remote_src: yes
+
+    - name: Download ArgoCD Vault Plugin
+      get_url:
+        url: https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v1.17.0/argocd-vault-plugin_1.17.0_linux_amd64
+        dest: /usr/local/bin/argocd-vault-plugin
+        mode: a+x
+
+    - name: Download golang
+      get_url:
+        url: https://go.dev/dl/go1.21.5.linux-amd64.tar.gz
+        dest: /tmp/go.linux-amd64.tar.gz
+    - name: Extract golang
+      unarchive:
+        src: /tmp/go.linux-amd64.tar.gz
+        dest: /usr/local
+        remote_src: yes
+
+    - name: change user shell to zsh
+      become: true
+      user:
+        name: "garrett"
+        shell: /bin/zsh
+
+    - name: Check if .zshrc exists
+      stat:
+        path: /home/garrett/.zshrc
+      register: zshrc
+
+    - name: Check if .oh-my-zsh exists
+      stat:
+        path: /home/garrett/.oh-my-zsh
+      register: oh_my_zsh
+
+    - name: Cloning  oh-my-zsh
+      git:
+        repo: https://github.com/ohmyzsh/ohmyzsh.git
+        dest: /home/garrett/.oh-my-zsh
+      when: not oh_my_zsh.stat.exists
+
+    - name: Ensure default shell is /bin/bash for garrett
+      ansible.builtin.user:
+        name: garrett
+        shell: /bin/zsh
