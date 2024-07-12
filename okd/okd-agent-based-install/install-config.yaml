@@ -1,0 +1,30 @@
+apiVersion: v1
+baseDomain: garrettholland.com
+compute:
+  - hyperthreading: Enabled
+    architecture: amd64
+    name: worker
+    replicas: 3
+controlPlane:
+  hyperthreading: Enabled
+  architecture: amd64
+  name: master
+  replicas: 3
+metadata:
+  name: okd
+networking:
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  machineNetwork:
+    - cidr: 10.0.1.0/24
+  networkType: OVNKubernetes
+  serviceNetwork:
+    - 172.30.0.0/16
+platform:
+  none: {}
+fips: false
+pullSecret: "PULL_SECRET"
+sshKey: "SSH_KEY"
+ImageDigestSources:
+  - source: quay.io/openshift
