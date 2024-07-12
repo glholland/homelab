@@ -1,0 +1,95 @@
+apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: okd
+rendezvousIP: 10.0.1.210
+hosts:
+  - hostname: master-1
+    role: master
+    interfaces:
+      - name: net0
+        macAddress: 00:00:00:00:AA:00
+    networkConfig:
+      interfaces:
+        - name: net0
+          type: ethernet
+          state: up
+          mac-address: 00:00:00:00:AA:00
+          ipv4:
+            enabled: true
+            dhcp: true
+  - hostname: master-2
+    role: master
+    interfaces:
+      - name: net0
+        macAddress: 00:00:00:00:AA:01
+    networkConfig:
+      interfaces:
+        - name: net0
+          type: ethernet
+          state: up
+          mac-address: 00:00:00:00:AA:01
+          ipv4:
+            enabled: true
+            address:
+            dhcp: true
+  - hostname: master-3
+    role: master
+    interfaces:
+      - name: net0
+        macAddress: 00:00:00:00:AA:02
+    networkConfig:
+      interfaces:
+        - name: net0
+          type: ethernet
+          state: up
+          mac-address: 00:00:00:00:AA:02
+          ipv4:
+            enabled: true
+            address:
+            dhcp: true
+  - hostname: worker-1
+    role: worker
+    interfaces:
+      - name: net0
+        macAddress: 00:00:00:00:AA:03
+    networkConfig:
+      interfaces:
+        - name: net0
+          type: ethernet
+          state: up
+          mac-address: 00:00:00:00:AA:03
+          ipv4:
+            enabled: true
+            address:
+            dhcp: true
+  - hostname: worker-2
+    role: worker
+    interfaces:
+      - name: net0
+        macAddress: 00:00:00:00:AA:04
+    networkConfig:
+      interfaces:
+        - name: net0
+          type: ethernet
+          state: up
+          mac-address: 00:00:00:00:AA:04
+          ipv4:
+            enabled: true
+            address:
+            dhcp: true
+  - hostname: worker-3
+    role: worker
+    interfaces:
+      - name: net0
+        macAddress: 00:00:00:00:AA:05
+    networkConfig:
+      interfaces:
+        - name: net0
+          type: ethernet
+          state: up
+          mac-address: 00:00:00:00:AA:05
+          ipv4:
+            enabled: true
+            address:
+            dhcp: true
