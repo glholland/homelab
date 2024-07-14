@@ -1,0 +1,15 @@
+apiVersion: config.openshift.io/v1
+kind: APIServer
+metadata:
+  labels:
+    app.kubernetes.io/instance: okd-configuration
+  name: cluster
+spec:
+  audit:
+    profile: Default
+  servingCerts:
+    namedCertificates:
+      - names:
+          - api.okd.garrettholland.com
+        servingCertificate:
+          name: api-certificate
