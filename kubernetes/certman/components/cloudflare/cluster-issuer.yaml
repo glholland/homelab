@@ -1,0 +1,47 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+  namespace: cert-manager
+  # annotations:
+  #   argocd.argoproj.io/sync-wave: "1"
+  #   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  labels:
+    app.kubernetes.io/instance: certificate-manager
+spec:
+  acme:
+    email: <path:projects/project_id/secrets/cf_email#cf_email>
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: issuer-letsencrypt-staging
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              key: api-token
+              name: cloudflare-api-token-secret
+            email: <path:projects/project_id/secrets/cf_email#cf_email>
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+  namespace: cert-manager
+  # annotations:
+  #   argocd.argoproj.io/sync-wave: "1"
+  #   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  labels:
+    app.kubernetes.io/instance: certificate-manager
+spec:
+  acme:
+    email: <path:projects/project_id/secrets/cf_email#cf_email>
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: issuer-letsencrypt
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              key: api-token
+              name: cloudflare-api-token-secret
+            email: <path:projects/project_id/secrets/cf_email#cf_email>
