@@ -1,0 +1,25 @@
+# https://docs.openshift.com/container-platform/latest/networking/ingress-operator.html#configuring-ingress-controller
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: default
+  namespace: openshift-ingress-operator
+  annotations:
+    ingress.operator.openshift.io/default-enable-http2: "true"
+  labels:
+    app.kubernetes.io/instance: okd-configuration
+spec:
+  defaultCertificate:
+    name: ingress-certificate
+  clientTLS:
+    clientCA:
+      name: ""
+    clientCertificatePolicy: ""
+  httpCompression: {}
+  httpEmptyRequestsPolicy: Respond
+  httpErrorCodePages:
+    name: ""
+  replicas: 2
+  tuningOptions:
+    reloadInterval: 0s
+  unsupportedConfigOverrides: null
