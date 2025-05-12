@@ -27,7 +27,9 @@ variable "gcp_service_list" {
     "storage-api.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
-    "sts.googleapis.com"
+    "sts.googleapis.com",
+    "apikeys.googleapis.com",
+    "firebase.googleapis.com",
   ]
 }
 
@@ -50,6 +52,10 @@ variable "ty_gcp_service_list" {
     "artifactregistry.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
-    "sts.googleapis.com"
+    "sts.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "firebase.googleapis.com",
+    "apikeys.googleapis.com",
+
   ]
 }
