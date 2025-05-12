@@ -10,7 +10,7 @@ resource "google_secret_manager_secret" "secrets_tfvars" {
 
 resource "google_secret_manager_secret_version" "secrets_tfvars" {
   secret          = google_secret_manager_secret.secrets_tfvars.id
-  secret_data     = file("secrets.tfvars")
+  secret_data_wo  = file("secrets.tfvars")
   deletion_policy = "DISABLE"
 }
 
@@ -28,7 +28,7 @@ resource "google_secret_manager_secret" "proxmox_tfvars" {
 
 resource "google_secret_manager_secret_version" "proxmox_tfvars" {
   secret          = google_secret_manager_secret.proxmox_tfvars.id
-  secret_data     = file("../../proxmox/terraform/secrets.tfvars")
+  secret_data_wo  = file("../../proxmox/terraform/secrets.tfvars")
   deletion_policy = "DISABLE"
 }
 

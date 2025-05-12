@@ -4,6 +4,12 @@ provider "google" {
   project               = var.gcp_project_id
 }
 
+provider "google-beta" {
+  user_project_override = true
+  billing_project       = var.gcp_project_id
+  project               = var.gcp_project_id
+}
+
 terraform {
   backend "gcs" {
     bucket = "homelab-tfstate-26300"
