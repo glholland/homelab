@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: metallb-system
+
+resources:
+  - ../../base
+  - rolebinding.yaml
+  - ipaddresspools.yaml
+  - l2advertisement.yaml
+
+patches:
+  - path: deployment-patch.yaml

@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-loadbalancer
+  namespace: metallb-system
+  annotations:
+    metallb.io/address-pool: default-pool
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: test-app
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+  namespace: metallb-system
+spec:
+  selector:
+    matchLabels:
+      app: test-app
+  template:
+    metadata:
+      labels:
+        app: test-app
+    spec:
+      containers:
+        - name: web
+          image: registry.access.redhat.com/ubi9/ubi
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              echo "OK" > /data/index.html
+              cd /data
+              python3 -m http.server 8080
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: test-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-pvc
+  namespace: metallb-system
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: truenas-nfs
+  resources:
+    requests:
+      storage: 1Gi
