@@ -19,10 +19,6 @@ resource "proxmox_virtual_environment_vm" "master-1" {
     order    = 1
     up_delay = 5
   }
-  # clone {
-  #   vm_id = 900
-  #   full  = true
-  # }
   network_device {
     bridge      = "vmbr0"
     model       = "virtio"
@@ -36,7 +32,7 @@ resource "proxmox_virtual_environment_vm" "master-1" {
     version = "v2.0"
   }
   memory {
-    dedicated = 16384
+    dedicated = 32768
   }
   cpu {
     architecture = "x86_64"
@@ -52,23 +48,6 @@ resource "proxmox_virtual_environment_vm" "master-1" {
     type        = "4m"
     file_format = "raw"
   }
-  # initialization {
-  #   # dns {
-  #   #   domain  = "garrettholland.com"
-  #   #   servers = ["10.0.0.1"]
-  #   # }
-
-  #   ip_config {
-  #     ipv4 {
-  #       address = "dhcp"
-  #     }
-  #   }
-  #   user_account {
-  #     keys     = [var.desktop_pub_key]
-  #     username = "garrett"
-  #   }
-  # }
-  # hook_script_file_id = var.hook_script_id
 }
 resource "proxmox_virtual_environment_vm" "master-2" {
   name        = "master-2"
@@ -91,10 +70,6 @@ resource "proxmox_virtual_environment_vm" "master-2" {
     order    = 1
     up_delay = 5
   }
-  # clone {
-  #   vm_id = 900
-  #   full  = true
-  # }
   network_device {
     bridge      = "vmbr0"
     model       = "virtio"
@@ -109,7 +84,7 @@ resource "proxmox_virtual_environment_vm" "master-2" {
     version = "v2.0"
   }
   memory {
-    dedicated = 16384
+    dedicated = 32768
   }
   cpu {
     architecture = "x86_64"
@@ -125,22 +100,6 @@ resource "proxmox_virtual_environment_vm" "master-2" {
     type        = "4m"
     file_format = "raw"
   }
-  # initialization {
-  #   #   dns {
-  #   #     domain  = "garrettholland.com"
-  #   #     servers = ["10.0.0.1"]
-  #   #   }
-  #   ip_config {
-  #     ipv4 {
-  #       address = "dhcp"
-  #     }
-  #   }
-  #   user_account {
-  #     keys     = [var.desktop_pub_key]
-  #     username = "garrett"
-  #   }
-  # }
-  # hook_script_file_id = var.hook_script_id
 }
 resource "proxmox_virtual_environment_vm" "master-3" {
   name        = "master-3"
@@ -165,10 +124,6 @@ resource "proxmox_virtual_environment_vm" "master-3" {
     order    = 1
     up_delay = 5
   }
-  # clone {
-  #   vm_id = 900
-  #   full  = true
-  # }
   network_device {
     bridge      = "vmbr0"
     model       = "virtio"
@@ -182,7 +137,7 @@ resource "proxmox_virtual_environment_vm" "master-3" {
     version = "v2.0"
   }
   memory {
-    dedicated = 16384
+    dedicated = 32768
   }
   cpu {
     architecture = "x86_64"
@@ -199,10 +154,6 @@ resource "proxmox_virtual_environment_vm" "master-3" {
     file_format = "raw"
   }
   initialization {
-    # dns {
-    # 	domain = "garrettholland.com"
-    # 	servers = ["10.0.0.1"]
-    # }
     ip_config {
       ipv4 {
         address = "dhcp"
@@ -213,7 +164,6 @@ resource "proxmox_virtual_environment_vm" "master-3" {
       username = "garrett"
     }
   }
-  # hook_script_file_id = var.hook_script_id
 }
 resource "proxmox_virtual_environment_vm" "worker-1" {
   name        = "worker-1"
@@ -238,10 +188,7 @@ resource "proxmox_virtual_environment_vm" "worker-1" {
     order    = 1
     up_delay = 5
   }
-  # clone {
-  #   vm_id = 900
-  #   full  = true
-  # }
+
   network_device {
     bridge      = "vmbr0"
     model       = "virtio"
@@ -271,22 +218,6 @@ resource "proxmox_virtual_environment_vm" "worker-1" {
     type        = "4m"
     file_format = "raw"
   }
-  # initialization {
-  #   # dns {
-  #   # 	domain = "garrettholland.com"
-  #   # 	servers = ["10.0.0.1"]
-  #   # }
-  #   ip_config {
-  #     ipv4 {
-  #       address = "dhcp"
-  #     }
-  #   }
-  #   user_account {
-  #     keys     = [var.desktop_pub_key]
-  #     username = "garrett"
-  #   }
-  # }
-  # hook_script_file_id = var.hook_script_id
 }
 resource "proxmox_virtual_environment_vm" "worker-2" {
   name        = "worker-2"
@@ -311,10 +242,6 @@ resource "proxmox_virtual_environment_vm" "worker-2" {
     order    = 1
     up_delay = 5
   }
-  # clone {
-  #   vm_id = 900
-  #   full  = true
-  # }
   network_device {
     bridge      = "vmbr0"
     model       = "virtio"
@@ -344,22 +271,6 @@ resource "proxmox_virtual_environment_vm" "worker-2" {
     type        = "4m"
     file_format = "raw"
   }
-  # initialization {
-  #   # dns {
-  #   # 	domain = "garrettholland.com"
-  #   # 	servers = ["10.0.0.1"]
-  #   # }
-  #   ip_config {
-  #     ipv4 {
-  #       address = "dhcp"
-  #     }
-  #   }
-  #   user_account {
-  #     keys     = [var.desktop_pub_key]
-  #     username = "garrett"
-  #   }
-  # }
-  # hook_script_file_id = var.hook_script_id
 }
 resource "proxmox_virtual_environment_vm" "worker-3" {
   name        = "worker-3"
@@ -384,10 +295,6 @@ resource "proxmox_virtual_environment_vm" "worker-3" {
     order    = 1
     up_delay = 5
   }
-  # clone {
-  #   vm_id = 900
-  #   full  = true
-  # }
   network_device {
     bridge      = "vmbr0"
     model       = "virtio"
@@ -417,20 +324,4 @@ resource "proxmox_virtual_environment_vm" "worker-3" {
     type        = "4m"
     file_format = "raw"
   }
-  # initialization {
-  #   # dns {
-  #   # 	domain = "garrettholland.com"
-  #   # 	servers = ["10.0.0.1"]
-  #   # }
-  #   ip_config {
-  #     ipv4 {
-  #       address = "dhcp"
-  #     }
-  #   }
-  #   user_account {
-  #     keys     = [var.desktop_pub_key]
-  #     username = "garrett"
-  #   }
-  # }
-  # hook_script_file_id = var.hook_script_id
 }
