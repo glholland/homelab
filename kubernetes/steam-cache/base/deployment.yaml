@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: steam-cache
+  labels:
+    app: steam-cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: steam-cache
+  template:
+    metadata:
+      labels:
+        app: steam-cache
+    spec:
+      containers:
+        - name: steam-cache
+          image: docker.io/lancachenet/monolithic:latest
+          env:
+            - name: UPSTREAM_DNS
+              value: "10.0.0.1"
+            - name: CACHE_DISK_SIZE
+              value: "1000000m"
+            - name: CACHE_MAX_AGE
+              value: "3650d"
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: cache-data
+              mountPath: /data/cache
+      volumes:
+        - name: cache-data
+          persistentVolumeClaim:
+            claimName: steam-cache-data
