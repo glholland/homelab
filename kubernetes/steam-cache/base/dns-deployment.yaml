@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: steam-cache-dns
+  labels:
+    app: steam-cache-dns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: steam-cache-dns
+  template:
+    metadata:
+      labels:
+        app: steam-cache-dns
+    spec:
+      containers:
+        - name: dns
+          image: docker.io/lancachenet/lancache-dns:latest
+          env:
+            - name: LANCACHE_IP
+              value: "10.0.50.201"
+            - name: USE_GENERIC_CACHE
+              value: "true"
+            - name: UPSTREAM_DNS
+              value: "10.0.0.1"
+          ports:
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP

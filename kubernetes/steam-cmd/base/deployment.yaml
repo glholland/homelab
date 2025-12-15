@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: steam-cmd
+  labels:
+    app: steam-cmd
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: steam-cmd
+  template:
+    metadata:
+      labels:
+        app: steam-cmd
+    spec:
+      containers:
+        - name: steam-cmd
+          image: docker.io/skaterdurf/steam-cmd:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: HOME
+              value: /data/home
+          command: ["tail", "-f", "/dev/null"]
+          volumeMounts:
+            - name: steam-data
+              mountPath: /data
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      volumes:
+        - name: steam-data
+          persistentVolumeClaim:
+            claimName: steam-cmd-data
