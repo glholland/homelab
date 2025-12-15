@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-driver-setup
+  namespace: democratic-csi
+  labels:
+    app: node-driver-setup
+spec:
+  selector:
+    matchLabels:
+      app: node-driver-setup
+  template:
+    metadata:
+      labels:
+        app: node-driver-setup
+    spec:
+      serviceAccountName: node-driver-setup
+      hostPID: true
+      hostNetwork: true
+      containers:
+        - name: setup
+          image: registry.access.redhat.com/ubi9/ubi-minimal
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Checking iscsid service..."
+              # Using chroot to access host systemd
+              chroot /host /bin/bash -c "systemctl enable --now iscsid"
+              echo "iscsid enabled and started."
+              # Sleep forever to keep the pod running (DaemonSet requirement)
+              sleep infinity
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-driver-setup
+  namespace: democratic-csi
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-driver-setup-privileged
+subjects:
+  - kind: ServiceAccount
+    name: node-driver-setup
+    namespace: democratic-csi
+roleRef:
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+  apiGroup: rbac.authorization.k8s.io
