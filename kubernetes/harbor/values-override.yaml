@@ -1,0 +1,106 @@
+expose:
+  type: clusterIP
+  tls:
+    enabled: false
+  ingress:
+    hosts:
+      core: harbor.lab.garrettholland.com
+      notary: notary.harbor.lab.garrettholland.com
+    controller: default
+
+externalURL: https://harbor.lab.garrettholland.com
+
+persistence:
+  persistentVolumeClaim:
+    registry:
+      storageClass: "truenas-nfs-retain"
+      size: 50Gi
+      accessMode: ReadWriteOnce
+    jobservice:
+      jobLog:
+        storageClass: "truenas-nfs-retain"
+        size: 1Gi
+        accessMode: ReadWriteOnce
+    database:
+      storageClass: "truenas-nfs-retain"
+      size: 10Gi
+      accessMode: ReadWriteOnce
+    redis:
+      storageClass: "truenas-nfs-retain"
+      size: 10Gi
+      accessMode: ReadWriteOnce
+    trivy:
+      storageClass: "truenas-nfs-retain"
+      size: 5Gi
+      accessMode: ReadWriteOnce
+
+imageChartStorage:
+  type: filesystem
+  filesystem:
+    rootdirectory: /storage
+
+# Disable optional components for lightweight deployment
+trivy:
+  enabled: false
+notary:
+  enabled: false
+chartmuseum:
+  enabled: false
+
+# Resource Limits to prevent usage spikes
+portal:
+  resources:
+    limits:
+      memory: 256Mi
+      cpu: 250m
+    requests:
+      memory: 128Mi
+      cpu: 100m
+core:
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 256Mi
+      cpu: 250m
+jobservice:
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 256Mi
+      cpu: 250m
+registry:
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 256Mi
+      cpu: 250m
+database:
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 500m
+    requests:
+      memory: 512Mi
+      cpu: 250m
+redis:
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 250m
+    requests:
+      memory: 256Mi
+      cpu: 100m
+nginx:
+  resources:
+    limits:
+      memory: 256Mi
+      cpu: 250m
+    requests:
+      memory: 128Mi
+      cpu: 100m
