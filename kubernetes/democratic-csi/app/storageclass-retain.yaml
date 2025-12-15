@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: truenas-nfs-retain
+provisioner: org.democratic-csi.freenas-nfs
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+parameters:
+  fsType: nfs
+  pool: "Storage/nfs/okd"

@@ -1,0 +1,11 @@
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: truenas-nfs-snapshot
+  annotations:
+    snapshot.storage.k8s.io/is-default-class: "true"
+driver: org.democratic-csi.freenas-nfs
+deletionPolicy: Delete
+parameters:
+  # Using the dedicated snapshots dataset we configured
+  detachedSnapshots: "true"
