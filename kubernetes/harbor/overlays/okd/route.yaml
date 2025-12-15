@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: harbor
+  namespace: harbor
+  labels:
+    type: lab
+spec:
+  host: harbor.lab.garrettholland.com
+  to:
+    kind: Service
+    name: harbor
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
