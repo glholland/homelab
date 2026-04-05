@@ -8,3 +8,5 @@ resources:
 - 99-assisted-installer-master-ssh.yaml
 - 99-qemu-guest-agent-master.yaml
 - 99-qemu-guest-agent-worker.yaml
+- 99-master-custom-dns.yaml
+- 99-worker-custom-dns.yaml
