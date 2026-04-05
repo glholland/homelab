@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- 50-masters-chrony-configuration.yaml
+- 50-workers-chrony-configuration.yaml
+- 99-master-ssh.yaml
+- 99-worker-ssh.yaml
+- 99-assisted-installer-master-ssh.yaml
+- 99-qemu-guest-agent-master.yaml
+- 99-qemu-guest-agent-worker.yaml
