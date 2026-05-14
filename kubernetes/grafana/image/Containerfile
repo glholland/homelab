@@ -1,0 +1,42 @@
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS fetch
+
+ARG GRAFANA_VERSION=13.0.1+security-01
+ARG GRAFANA_BUILD=25720641773
+
+RUN microdnf install -y tar gzip && \
+    microdnf clean all
+
+RUN BASE="https://dl.grafana.com/grafana/release/${GRAFANA_VERSION}" && \
+    FILE="grafana_${GRAFANA_VERSION}_${GRAFANA_BUILD}_linux_amd64.tar.gz" && \
+    curl -fsSL "${BASE}/${FILE}" -o /tmp/grafana.tar.gz && \
+    curl -fsSL "${BASE}/${FILE}.sha256" -o /tmp/grafana.tar.gz.sha256 && \
+    EXPECTED=$(awk '{print $1}' /tmp/grafana.tar.gz.sha256) && \
+    echo "${EXPECTED}  /tmp/grafana.tar.gz" | sha256sum -c && \
+    tar -xzf /tmp/grafana.tar.gz -C /tmp && \
+    mv /tmp/grafana-* /grafana
+
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+
+ENV GF_PATHS_DATA=/var/lib/grafana \
+    GF_PATHS_LOGS=/var/log/grafana \
+    GF_PATHS_PLUGINS=/var/lib/grafana/plugins \
+    GF_PATHS_PROVISIONING=/etc/grafana/provisioning \
+    GF_PATHS_CONFIG=/etc/grafana/grafana.ini \
+    HOME=/var/lib/grafana
+
+COPY --from=fetch /grafana /usr/share/grafana
+COPY --from=fetch /grafana/conf/defaults.ini /etc/grafana/grafana.ini
+
+RUN mkdir -p /var/lib/grafana /var/log/grafana /etc/grafana/provisioning && \
+    ln -s /usr/share/grafana/bin/grafana /usr/local/bin/grafana && \
+    # OpenShift arbitrary UID: owned by root group, group-writable
+    chown -R 0:0 /usr/share/grafana /var/lib/grafana /var/log/grafana /etc/grafana && \
+    chmod -R g=u /usr/share/grafana /var/lib/grafana /var/log/grafana /etc/grafana
+
+EXPOSE 3000
+
+USER 1001
+
+ENTRYPOINT ["/usr/share/grafana/bin/grafana"]
+CMD ["server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana"]
