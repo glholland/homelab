@@ -102,9 +102,6 @@ spec:
             - name: modules-dir
               mountPath: /lib/modules
               readOnly: true
-            - name: localtime
-              mountPath: /etc/localtime
-              readOnly: true
             - name: udev-data
               mountPath: /run/udev
             - name: host-dir
@@ -229,9 +226,6 @@ spec:
         - name: modules-dir
           hostPath:
             path: /lib/modules
-        - name: localtime
-          hostPath:
-            path: /etc/localtime
         - name: udev-data
           hostPath:
             path: /run/udev
