@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: grafana
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: InfluxDB
+        type: influxdb
+        access: proxy
+        url: http://influxdb.influxdb.svc.cluster.local:8086
+        jsonData:
+          dbName: telegraf
+          httpMode: GET
+        isDefault: true
+      - name: InfluxDB-SNMP-AP
+        type: influxdb
+        access: proxy
+        url: http://influxdb.influxdb.svc.cluster.local:8086
+        jsonData:
+          dbName: apsnmp
+          httpMode: GET
+      - name: InfluxDB-SNMP-Router
+        type: influxdb
+        access: proxy
+        url: http://influxdb.influxdb.svc.cluster.local:8086
+        jsonData:
+          dbName: routersnmp
+          httpMode: GET

@@ -6,7 +6,4 @@ resources:
   - service.yaml
   - deployment.yaml
   - volume.yaml
-  - certificate.yaml
-  # - cm-config.yaml
-  # - cm-dashboards.yaml
-  # - cm-datasources.yaml
+  - cm-datasources.yaml
