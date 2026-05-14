@@ -1,19 +1,29 @@
-apiVersion: route.openshift.io/v1
-kind: Route
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: grafana
   namespace: grafana
   labels:
     app.kubernetes.io/instance: grafana
     external-dns: enabled
+  annotations:
+    route.openshift.io/termination: edge
+    external-dns.alpha.kubernetes.io/hostname: grafana.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
 spec:
-  host: grafana.garrettholland.com
-  port:
-    targetPort: http-grafana
+  ingressClassName: openshift-default
+  rules:
+    - host: grafana.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  name: http-grafana
   tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
-  to:
-    kind: Service
-    name: grafana
-    weight: 100
+    - hosts:
+        - grafana.garrettholland.com
+      secretName: grafana-tls
