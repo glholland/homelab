@@ -9,17 +9,20 @@ metadata:
   labels:
     app.kubernetes.io/instance: okd-configuration
 spec:
-  defaultCertificate:
-    name: ingress-certificate
   clientTLS:
     clientCA:
       name: ""
     clientCertificatePolicy: ""
+  closedClientConnectionPolicy: Continue
+  defaultCertificate:
+    name: okd-ingress-cert-tls
   httpCompression: {}
   httpEmptyRequestsPolicy: Respond
   httpErrorCodePages:
     name: ""
-  replicas: 2
+  idleConnectionTerminationPolicy: Immediate
+  replicas: 3
+  routeAdmission:
+    wildcardPolicy: WildcardsAllowed
   tuningOptions:
     reloadInterval: 0s
-  unsupportedConfigOverrides: null
