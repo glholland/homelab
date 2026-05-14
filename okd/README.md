@@ -1,6 +1,6 @@
 # OKD
 
-[Installing an OpenShift Container Platform cluster with the Agent-based Installer](https://docs.openshift.com/container-platform/4.16/installing/installing_with_agent_based_installer/installing-with-agent-based-installer.html#agent-install-verifying-architectures_installing-with-agent-based-installer)
+[Installing an OpenShift Container Platform cluster with the Agent-based Installer](https://docs.openshift.com/container-platform/latest/installing/installing_with_agent_based_installer/installing-with-agent-based-installer.html#agent-install-verifying-architectures_installing-with-agent-based-installer)
 
 ## Install Dependencies
 
@@ -30,13 +30,13 @@ sudo yum install -y kubectl
 Download, extract, and move to bin
 
 ```bash
-wget https://github.com/okd-project/okd/releases/download/4.15.0-0.okd-2024-03-10-010116/openshift-install-linux-4.15.0-0.okd-2024-03-10-010116.tar.gz -O /tmp/openshift-install.tar.gz
+wget https://github.com/okd-project/okd/releases/download/4.22.0-okd-scos.0/openshift-install-linux-4.22.0-okd-scos.0.tar.gz -O /tmp/openshift-install.tar.gz
 
 tar xzf /tmp/openshift-install.tar.gz -C ~/bin
 ```
 
 ```bash
-wget https://github.com/okd-project/okd/releases/download/4.15.0-0.okd-2024-03-10-010116/openshift-client-linux-4.15.0-0.okd-2024-03-10-010116.tar.gz -O /tmp/openshift-client.tar.gz
+wget https://github.com/okd-project/okd/releases/download/4.22.0-okd-scos.0/openshift-client-linux-4.22.0-okd-scos.0.tar.gz -O /tmp/openshift-client.tar.gz
 
 tar xzf /tmp/openshift-client.tar.gz -C ~/bin
 ```
