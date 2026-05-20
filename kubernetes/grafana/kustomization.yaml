@@ -8,3 +8,6 @@ resources:
   - deployment.yaml
   - volume.yaml
   - cm-datasources.yaml
+  - cm-dashboard-provisioning.yaml
+  - cm-dashboard-router.yaml
+  - cm-dashboard-unifi-aps.yaml

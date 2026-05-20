@@ -62,6 +62,15 @@ spec:
             - mountPath: /etc/grafana/provisioning/datasources
               name: grafana-datasources
               readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards
+              name: grafana-dashboard-provisioning
+              readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/router
+              name: grafana-dashboard-router
+              readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/unifi-aps
+              name: grafana-dashboard-unifi-aps
+              readOnly: true
       volumes:
         - name: grafana-pv
           persistentVolumeClaim:
@@ -69,3 +78,12 @@ spec:
         - name: grafana-datasources
           configMap:
             name: grafana-datasources
+        - name: grafana-dashboard-provisioning
+          configMap:
+            name: grafana-dashboard-provisioning
+        - name: grafana-dashboard-router
+          configMap:
+            name: grafana-dashboard-router
+        - name: grafana-dashboard-unifi-aps
+          configMap:
+            name: grafana-dashboard-unifi-aps
