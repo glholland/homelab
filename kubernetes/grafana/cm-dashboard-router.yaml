@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-router
+  namespace: grafana
+  labels:
+    grafana_dashboard: "1"
+data:
+  router.json: |
+    {
+      "title": "Dream Machine Router",
+      "uid": "udm-router",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "1m",
+      "time": { "from": "now-3h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "CPU Usage",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            {
+              "rawSql": "SELECT time, ssCpuRawUser AS \"user\", ssCpuRawSystem AS \"system\", ssCpuRawWait AS \"iowait\", ssCpuRawIdle AS \"idle\" FROM \"snmp_ssCpuRawUser\" JOIN \"snmp_ssCpuRawSystem\" USING (time) JOIN \"snmp_ssCpuRawWait\" USING (time) JOIN \"snmp_ssCpuRawIdle\" USING (time) WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "A",
+              "format": "time_series"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } }
+          }
+        },
+        {
+          "id": 2,
+          "title": "System Load Average",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            {
+              "rawSql": "SELECT time, laLoadFloat AS \"load\", \"laNames\" FROM \"laTable_laLoadFloat\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "A",
+              "format": "time_series"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "short", "custom": { "lineWidth": 2 } }
+          }
+        },
+        {
+          "id": 3,
+          "title": "Memory Usage",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            {
+              "rawSql": "SELECT time, memTotalReal AS \"total\", memAvailReal AS \"available\", memTotalFree AS \"free\" FROM \"snmp_memTotalReal\" JOIN \"snmp_memAvailReal\" USING (time) JOIN \"snmp_memTotalFree\" USING (time) WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "A",
+              "format": "time_series"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "kbytes", "custom": { "lineWidth": 2, "fillOpacity": 10 } }
+          }
+        },
+        {
+          "id": 4,
+          "title": "Interface Throughput (HC Octets)",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            {
+              "rawSql": "SELECT time, ifHCInOctets AS \"rx\", \"ifName\" FROM \"ifXTable_ifHCInOctets\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "A",
+              "format": "time_series"
+            },
+            {
+              "rawSql": "SELECT time, ifHCOutOctets AS \"tx\", \"ifName\" FROM \"ifXTable_ifHCOutOctets\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "B",
+              "format": "time_series"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } }
+          }
+        },
+        {
+          "id": 5,
+          "title": "TCP Connections",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            {
+              "rawSql": "SELECT time, tcpCurrEstab AS \"established\" FROM \"snmp_tcpCurrEstab\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "A",
+              "format": "time_series"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "short", "custom": { "lineWidth": 2 } }
+          }
+        },
+        {
+          "id": 6,
+          "title": "Disk I/O",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            {
+              "rawSql": "SELECT time, diskIOReads AS \"reads\", \"diskIODevice\" FROM \"diskIOTable_diskIOReads\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "A",
+              "format": "time_series"
+            },
+            {
+              "rawSql": "SELECT time, diskIOWrites AS \"writes\", \"diskIODevice\" FROM \"diskIOTable_diskIOWrites\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+              "refId": "B",
+              "format": "time_series"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "iops", "custom": { "lineWidth": 2 } }
+          }
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "DS_INFLUXDB",
+            "type": "datasource",
+            "query": "influxdb",
+            "current": { "text": "InfluxDB", "value": "InfluxDB" }
+          }
+        ]
+      }
+    }

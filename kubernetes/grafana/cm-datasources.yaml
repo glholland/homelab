@@ -10,22 +10,10 @@ data:
       - name: InfluxDB
         type: influxdb
         access: proxy
-        url: http://influxdb.influxdb.svc.cluster.local:8086
+        url: http://influxdb.influxdb.svc.cluster.local:8181
         jsonData:
-          dbName: telegraf
-          httpMode: GET
+          version: SQL
+          database: telegraf
+        secureJsonData:
+          token: apiv3_change_me_to_a_random_token
         isDefault: true
-      - name: InfluxDB-SNMP-AP
-        type: influxdb
-        access: proxy
-        url: http://influxdb.influxdb.svc.cluster.local:8086
-        jsonData:
-          dbName: apsnmp
-          httpMode: GET
-      - name: InfluxDB-SNMP-Router
-        type: influxdb
-        access: proxy
-        url: http://influxdb.influxdb.svc.cluster.local:8086
-        jsonData:
-          dbName: routersnmp
-          httpMode: GET
