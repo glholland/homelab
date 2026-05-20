@@ -11,116 +11,173 @@ data:
       "title": "UniFi APs",
       "uid": "unifi-aps",
       "schemaVersion": 38,
-      "version": 1,
+      "version": 3,
       "refresh": "1m",
       "time": { "from": "now-3h", "to": "now" },
       "panels": [
+        { "id": 100, "title": "Wireless Clients", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "panels": [] },
         {
-          "id": 1,
-          "title": "Connected Clients per VAP",
-          "type": "timeseries",
-          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+          "id": 1, "title": "Connected Clients per VAP", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 1, "w": 24, "h": 8 },
           "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
           "targets": [
-            {
-              "rawSql": "SELECT time, unifiVapNumStations AS \"clients\", \"unifiVapEssId\", \"sysName\" FROM \"unifiVapTable_unifiVapNumStations\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
-              "refId": "A",
-              "format": "time_series"
-            }
+            { "rawSql": "SELECT time, gauge AS \"clients\", \"unifiVapEssId\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapNumStations\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
           ],
-          "fieldConfig": {
-            "defaults": { "unit": "short", "custom": { "lineWidth": 2 } }
-          }
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } } }
+        },
+
+        { "id": 101, "title": "Radio Performance", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 2, "title": "Radio Channel Utilization Total (%)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 10, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"cu_total\", \"unifiRadioName\", \"agent_host\" FROM \"unifiRadioTable_unifiRadioCuTotal\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } } }
         },
         {
-          "id": 2,
-          "title": "Radio Channel Utilization (%) per AP",
-          "type": "timeseries",
-          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+          "id": 3, "title": "Radio Channel Utilization Breakdown (%)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 10, "w": 12, "h": 8 },
           "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
           "targets": [
-            {
-              "rawSql": "SELECT time, unifiRadioCuTotal AS \"cu_total\", \"unifiRadioName\", \"sysName\" FROM \"unifiRadioTable_unifiRadioCuTotal\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
-              "refId": "A",
-              "format": "time_series"
-            }
+            { "rawSql": "SELECT time, gauge AS \"self_rx\", \"unifiRadioName\", \"agent_host\" FROM \"unifiRadioTable_unifiRadioCuSelfRx\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"self_tx\", \"unifiRadioName\", \"agent_host\" FROM \"unifiRadioTable_unifiRadioCuSelfTx\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"other_bss\", \"unifiRadioName\", \"agent_host\" FROM \"unifiRadioTable_unifiRadioOtherBss\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" }
           ],
-          "fieldConfig": {
-            "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2 } }
-          }
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2 } } }
         },
         {
-          "id": 3,
-          "title": "VAP TX Bytes/s",
-          "type": "timeseries",
-          "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+          "id": 4, "title": "Radio TX/RX Packets", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 18, "w": 12, "h": 8 },
           "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
           "targets": [
-            {
-              "rawSql": "SELECT time, unifiVapTxBytes AS \"tx_bytes\", \"unifiVapEssId\", \"sysName\" FROM \"unifiVapTable_unifiVapTxBytes\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
-              "refId": "A",
-              "format": "time_series"
-            }
+            { "rawSql": "SELECT time, gauge AS \"rx_pkts\", \"unifiRadioName\", \"agent_host\" FROM \"unifiRadioTable_unifiRadioRxPackets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_pkts\", \"unifiRadioName\", \"agent_host\" FROM \"unifiRadioTable_unifiRadioTxPackets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
           ],
-          "fieldConfig": {
-            "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } }
-          }
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2 } } }
         },
         {
-          "id": 4,
-          "title": "VAP RX Bytes/s",
-          "type": "timeseries",
-          "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+          "id": 5, "title": "VAP TX Power & Channel", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 18, "w": 12, "h": 8 },
           "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
           "targets": [
-            {
-              "rawSql": "SELECT time, unifiVapRxBytes AS \"rx_bytes\", \"unifiVapEssId\", \"sysName\" FROM \"unifiVapTable_unifiVapRxBytes\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
-              "refId": "A",
-              "format": "time_series"
-            }
+            { "rawSql": "SELECT time, gauge AS \"tx_power\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapTxPower\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"channel\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapChannel\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
           ],
-          "fieldConfig": {
-            "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } }
-          }
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+
+        { "id": 102, "title": "VAP Traffic", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 26, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 6, "title": "VAP TX Bytes", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 27, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"tx_bytes\", \"unifiVapEssId\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapTxBytes\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2, "fillOpacity": 5 } } }
         },
         {
-          "id": 5,
-          "title": "TX Retries per VAP",
-          "type": "timeseries",
-          "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+          "id": 7, "title": "VAP RX Bytes", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 27, "w": 12, "h": 8 },
           "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
           "targets": [
-            {
-              "rawSql": "SELECT time, unifiVapTxRetries AS \"tx_retries\", \"unifiVapEssId\", \"sysName\" FROM \"unifiVapTable_unifiVapTxRetries\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
-              "refId": "A",
-              "format": "time_series"
-            }
+            { "rawSql": "SELECT time, gauge AS \"rx_bytes\", \"unifiVapEssId\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapRxBytes\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
           ],
-          "fieldConfig": {
-            "defaults": { "unit": "short", "custom": { "lineWidth": 2 } }
-          }
+          "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2, "fillOpacity": 5 } } }
         },
         {
-          "id": 6,
-          "title": "Ethernet Port TX/RX Bytes (unifiIfTable)",
-          "type": "timeseries",
-          "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+          "id": 8, "title": "VAP TX Packets", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 35, "w": 12, "h": 8 },
           "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
           "targets": [
-            {
-              "rawSql": "SELECT time, unifiIfTxBytes AS \"tx\", \"unifiIfName\", \"sysName\" FROM \"unifiIfTable_unifiIfTxBytes\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
-              "refId": "A",
-              "format": "time_series"
-            },
-            {
-              "rawSql": "SELECT time, unifiIfRxBytes AS \"rx\", \"unifiIfName\", \"sysName\" FROM \"unifiIfTable_unifiIfRxBytes\" WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
-              "refId": "B",
-              "format": "time_series"
-            }
+            { "rawSql": "SELECT time, gauge AS \"tx_pkts\", \"unifiVapEssId\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapTxPackets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
           ],
-          "fieldConfig": {
-            "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } }
-          }
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 9, "title": "VAP RX Packets", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 35, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"rx_pkts\", \"unifiVapEssId\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapRxPackets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2 } } }
+        },
+
+        { "id": 103, "title": "VAP Quality", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 43, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 10, "title": "VAP TX Retries", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 44, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"tx_retries\", \"unifiVapEssId\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapTxRetries\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 11, "title": "VAP TX Errors & Dropped", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 44, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"tx_errors\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapTxErrors\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_dropped\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapTxDropped\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_errors\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapRxErrors\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_dropped\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapRxDropped\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_crypts\", \"unifiVapName\", \"agent_host\" FROM \"unifiVapTable_unifiVapRxCrypts\" WHERE $__timeFilter(time) ORDER BY time", "refId": "E", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+
+        { "id": 104, "title": "Ethernet Ports", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 52, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 12, "title": "Ethernet TX/RX Bytes", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 53, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"tx\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfTxBytes\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfRxBytes\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 13, "title": "Ethernet TX/RX Packets", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 53, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"tx_pkts\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfTxPackets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_pkts\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfRxPackets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_multicast\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfRxMulticast\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 14, "title": "Ethernet Errors & Dropped", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 61, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"tx_errors\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfTxError\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_errors\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfRxError\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_dropped\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfTxDropped\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_dropped\", \"unifiIfName\", \"agent_host\" FROM \"unifiIfTable_unifiIfRxDropped\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+
+        { "id": 105, "title": "AP System", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 69, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 15, "title": "AP Memory Usage", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 70, "w": 24, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"total\", \"sysName\", \"agent_host\" FROM \"snmp.UAP_memTotalReal\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"available\", \"sysName\", \"agent_host\" FROM \"snmp.UAP_memAvailReal\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"free\", \"sysName\", \"agent_host\" FROM \"snmp.UAP_memTotalFree\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"buffer\", \"sysName\", \"agent_host\" FROM \"snmp.UAP_memBuffer\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"cached\", \"sysName\", \"agent_host\" FROM \"snmp.UAP_memCached\" WHERE $__timeFilter(time) ORDER BY time", "refId": "E", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "kbytes", "custom": { "lineWidth": 2, "fillOpacity": 5 } } }
         }
       ],
       "templating": {
@@ -129,7 +186,7 @@ data:
             "name": "DS_INFLUXDB",
             "type": "datasource",
             "query": "influxdb",
-            "current": { "text": "InfluxDB", "value": "InfluxDB" }
+            "current": { "text": "InfluxDB", "value": "influxdb-main" }
           }
         ]
       }

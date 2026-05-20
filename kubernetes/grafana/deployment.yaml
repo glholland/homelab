@@ -62,14 +62,17 @@ spec:
             - mountPath: /etc/grafana/provisioning/datasources
               name: grafana-datasources
               readOnly: true
-            - mountPath: /etc/grafana/provisioning/dashboards
+            - mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               name: grafana-dashboard-provisioning
+              subPath: dashboards.yaml
               readOnly: true
-            - mountPath: /etc/grafana/provisioning/dashboards/router
+            - mountPath: /etc/grafana/provisioning/dashboards/router.json
               name: grafana-dashboard-router
+              subPath: router.json
               readOnly: true
-            - mountPath: /etc/grafana/provisioning/dashboards/unifi-aps
+            - mountPath: /etc/grafana/provisioning/dashboards/unifi-aps.json
               name: grafana-dashboard-unifi-aps
+              subPath: unifi-aps.json
               readOnly: true
       volumes:
         - name: grafana-pv
