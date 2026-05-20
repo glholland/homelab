@@ -1,0 +1,27 @@
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: telegraf-anyuid
+allowHostNetwork: true
+allowHostPorts: true
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+fsGroup:
+  type: RunAsAny
+readOnlyRootFilesystem: false
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users:
+  - system:serviceaccount:telegraf:telegraf
+groups: []
+volumes:
+  - configMap
+  - secret
+  - emptyDir
+  - projected

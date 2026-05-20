@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegraf
+  namespace: telegraf
+spec:
+  template:
+    spec:
+      serviceAccountName: telegraf
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: telegraf
+          ports: []
