@@ -16,7 +16,7 @@ data:
       metric_batch_size = 10000
     [[inputs.snmp]]
       # List of agents to poll
-      agents = [ "192.168.1.114", "192.168.1.115" ]
+      agents = [ "10.0.0.165", "10.0.129.227", "10.0.171.38" ]
       # Polling interval
       interval = "60s"
       # Timeout for each SNMP query.
@@ -540,28 +540,5 @@ data:
     ###############
     ### OUTPUTS ###
     ###############
-    [[outputs.influxdb]]
-        alias = "telegrafdb"
-      urls = ["${INFLUX_URL}"]
-      username = "${INFLUXDB_USER}"
-      password = "${INFLUXDB_USER_PASSWORD}"
-      database = "${INFLUX_DB}"
-      precision = "s"
-    # [[outputs.influxdb]]
-    #     alias = "routersyslogdb"
-    #   urls = ["${INFLUX_URL}"]
-    #   username = "${INFLUXDB_USER}"
-    #   password = "${INFLUXDB_USER_PASSWORD}"
-    #   database = "${INFLUX_SYSLOG_DB}"
-    #   precision = "s"
-    #   [outputs.influxdb.tagpass]
-    #     influxdb_database = ["routersyslog"]
-    [[outputs.influxdb]]
-        alias = "apsnmpdb"
-      urls = ["${INFLUX_URL}"]
-      username = "${INFLUXDB_USER}"
-      password = "${INFLUXDB_USER_PASSWORD}"
-      database = "${INFLUX_APSNMP_DB}"
-      precision = "s"
-      [outputs.influxdb.tagpass]
-        influxdb_database = ["apsnmp"]
+    [[outputs.opentelemetry]]
+      service_address = "otel-collector.otel-collector.svc.cluster.local:4317"

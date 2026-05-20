@@ -4,7 +4,6 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - deployment.yaml
-  - ingressroute.yaml
   - routersnmp-config-cm.yaml
   - secrets.yaml
   - service.yaml
