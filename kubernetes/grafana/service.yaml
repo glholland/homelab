@@ -5,11 +5,11 @@ metadata:
   namespace: grafana
 spec:
   ports:
-    - name: "3000"
+    - name: http-grafana
       port: 3000
       protocol: TCP
       targetPort: http-grafana
   selector:
     app: grafana
   sessionAffinity: None
-  type: LoadBalancer
+  type: ClusterIP

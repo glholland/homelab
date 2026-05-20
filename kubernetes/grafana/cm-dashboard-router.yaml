@@ -1,0 +1,206 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-router
+  namespace: grafana
+  labels:
+    grafana_dashboard: "1"
+data:
+  router.json: |
+    {
+      "title": "Dream Machine Router",
+      "uid": "udm-router",
+      "schemaVersion": 38,
+      "version": 3,
+      "refresh": "1m",
+      "time": { "from": "now-3h", "to": "now" },
+      "panels": [
+        { "id": 100, "title": "CPU & Load", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 1, "title": "CPU Usage (Raw Ticks)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 1, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"user\" FROM \"snmp_ssCpuRawUser\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"system\" FROM \"snmp_ssCpuRawSystem\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"iowait\" FROM \"snmp_ssCpuRawWait\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"idle\" FROM \"snmp_ssCpuRawIdle\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"interrupt\" FROM \"snmp_ssCpuRawInterrupt\" WHERE $__timeFilter(time) ORDER BY time", "refId": "E", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"softirq\" FROM \"snmp_ssCpuRawSoftIRQ\" WHERE $__timeFilter(time) ORDER BY time", "refId": "F", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } } }
+        },
+        {
+          "id": 2, "title": "System Load Average", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 1, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"load\", \"laNames\" FROM \"laTable_laLoadFloat\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+
+        { "id": 101, "title": "Memory", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 3, "title": "Memory Usage", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 10, "w": 24, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"total\" FROM \"snmp_memTotalReal\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"available\" FROM \"snmp_memAvailReal\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"free\" FROM \"snmp_memTotalFree\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"buffer\" FROM \"snmp_memBuffer\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"cached\" FROM \"snmp_memCached\" WHERE $__timeFilter(time) ORDER BY time", "refId": "E", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"shared\" FROM \"snmp_memShared\" WHERE $__timeFilter(time) ORDER BY time", "refId": "F", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "kbytes", "custom": { "lineWidth": 2, "fillOpacity": 5 } } }
+        },
+
+        { "id": 102, "title": "Network Interfaces", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 18, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 4, "title": "Interface Throughput (Bytes/s)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 19, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"rx\", \"ifName\" FROM \"ifXTable_ifHCInOctets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx\", \"ifName\" FROM \"ifXTable_ifHCOutOctets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 5, "title": "Interface Unicast Packets/s", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 19, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"rx_ucast\", \"ifName\" FROM \"ifXTable_ifHCInUcastPkts\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_ucast\", \"ifName\" FROM \"ifXTable_ifHCOutUcastPkts\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 6, "title": "Interface Multicast & Broadcast Packets", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 27, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"rx_mcast\", \"ifName\" FROM \"ifXTable_ifHCInMulticastPkts\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_mcast\", \"ifName\" FROM \"ifXTable_ifHCOutMulticastPkts\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_bcast\", \"ifName\" FROM \"ifXTable_ifHCInBroadcastPkts\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_bcast\", \"ifName\" FROM \"ifXTable_ifHCOutBroadcastPkts\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 7, "title": "Interface Errors & Discards", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 27, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"rx_errors\", \"ifName\" FROM \"ifTable_ifInErrors\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_errors\", \"ifName\" FROM \"ifTable_ifOutErrors\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"rx_discards\", \"ifName\" FROM \"ifTable_ifInDiscards\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tx_discards\", \"ifName\" FROM \"ifTable_ifOutDiscards\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+
+        { "id": 103, "title": "TCP & UDP", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 35, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 8, "title": "TCP Connections", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 36, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"established\" FROM \"snmp_tcpCurrEstab\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"active_opens\" FROM \"snmp_tcpActiveOpens\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"passive_opens\" FROM \"snmp_tcpPassiveOpens\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"attempt_fails\" FROM \"snmp_tcpAttemptFails\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"estab_resets\" FROM \"snmp_tcpEstabResets\" WHERE $__timeFilter(time) ORDER BY time", "refId": "E", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 9, "title": "TCP Segments & UDP Datagrams", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 36, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"tcp_in_segs\" FROM \"snmp_tcpInSegs\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tcp_out_segs\" FROM \"snmp_tcpOutSegs\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"tcp_retrans\" FROM \"snmp_tcpRetransSegs\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"udp_in\" FROM \"snmp_udpInDatagrams\" WHERE $__timeFilter(time) ORDER BY time", "refId": "D", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"udp_out\" FROM \"snmp_udpOutDatagrams\" WHERE $__timeFilter(time) ORDER BY time", "refId": "E", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"udp_in_errors\" FROM \"snmp_udpInErrors\" WHERE $__timeFilter(time) ORDER BY time", "refId": "F", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 10, "title": "ICMP Messages", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 44, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"in_msgs\" FROM \"icmpStatsTable_icmpStatsInMsgs\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"out_msgs\" FROM \"icmpStatsTable_icmpStatsOutMsgs\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 11, "title": "ICMP Errors", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 44, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"in_errors\" FROM \"icmpStatsTable_icmpStatsInErrors\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"out_errors\" FROM \"icmpStatsTable_icmpStatsOutErrors\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        },
+
+        { "id": 104, "title": "Disk I/O", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 52, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 12, "title": "Disk Read & Write Operations", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 53, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"reads\", \"diskIODevice\" FROM \"diskIOTable_diskIOReads\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"writes\", \"diskIODevice\" FROM \"diskIOTable_diskIOWrites\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "iops", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 13, "title": "Disk Bytes Read & Written", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 53, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"bytes_read\", \"diskIODevice\" FROM \"diskIOTable_diskIONReadX\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"bytes_written\", \"diskIODevice\" FROM \"diskIOTable_diskIONWrittenX\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "lineWidth": 2 } } }
+        },
+        {
+          "id": 14, "title": "Disk Busy Time (%)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 61, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"busy_pct\", \"diskIODevice\" FROM \"diskIOTable_diskIOBusyTime\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } } }
+        },
+        {
+          "id": 15, "title": "Disk Load Average", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 61, "w": 12, "h": 8 },
+          "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "targets": [
+            { "rawSql": "SELECT time, gauge AS \"la1\", \"diskIODevice\" FROM \"diskIOTable_diskIOLA1\" WHERE $__timeFilter(time) ORDER BY time", "refId": "A", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"la5\", \"diskIODevice\" FROM \"diskIOTable_diskIOLA5\" WHERE $__timeFilter(time) ORDER BY time", "refId": "B", "format": "time_series" },
+            { "rawSql": "SELECT time, gauge AS \"la15\", \"diskIODevice\" FROM \"diskIOTable_diskIOLA15\" WHERE $__timeFilter(time) ORDER BY time", "refId": "C", "format": "time_series" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "DS_INFLUXDB",
+            "type": "datasource",
+            "query": "influxdb",
+            "current": { "text": "InfluxDB", "value": "influxdb-main" }
+          }
+        ]
+      }
+    }

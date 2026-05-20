@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: grafana
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    deleteDatasources:
+      - name: InfluxDB
+        orgId: 1
+    datasources:
+      - name: InfluxDB
+        uid: influxdb-main
+        type: influxdb
+        access: proxy
+        url: http://influxdb.influxdb.svc.cluster.local:8181
+        database: telegraf
+        editable: true
+        jsonData:
+          version: SQL
+          database: telegraf
+          insecureGrpc: true
+        secureJsonData:
+          token: apiv3_change_me_to_a_random_token
+        isDefault: true

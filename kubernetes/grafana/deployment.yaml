@@ -15,17 +15,22 @@ spec:
         app: grafana
     spec:
       securityContext:
-        fsGroup: 472
-        supplementalGroups:
-          - 0
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: grafana
-          image: grafana/grafana:9.1.1-ubuntu
+          image: harbor.lab.garrettholland.com/library/grafana:13.0.1-security-01
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
               name: http-grafana
               protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           readinessProbe:
             failureThreshold: 3
             httpGet:
@@ -54,7 +59,34 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/grafana
               name: grafana-pv
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-datasources
+              readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+              name: grafana-dashboard-provisioning
+              subPath: dashboards.yaml
+              readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/router.json
+              name: grafana-dashboard-router
+              subPath: router.json
+              readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/unifi-aps.json
+              name: grafana-dashboard-unifi-aps
+              subPath: unifi-aps.json
+              readOnly: true
       volumes:
         - name: grafana-pv
           persistentVolumeClaim:
             claimName: grafana-pvc
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboard-provisioning
+          configMap:
+            name: grafana-dashboard-provisioning
+        - name: grafana-dashboard-router
+          configMap:
+            name: grafana-dashboard-router
+        - name: grafana-dashboard-unifi-aps
+          configMap:
+            name: grafana-dashboard-unifi-aps
