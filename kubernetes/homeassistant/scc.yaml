@@ -1,0 +1,29 @@
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: homeassistant-hostnet
+allowHostNetwork: true
+allowHostPorts: true
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: RunAsAny
+fsGroup:
+  type: RunAsAny
+supplementalGroups:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+volumes:
+  - configMap
+  - secret
+  - emptyDir
+  - projected
+  - persistentVolumeClaim
+users:
+  - system:serviceaccount:homeassistant:homeassistant
+groups: []

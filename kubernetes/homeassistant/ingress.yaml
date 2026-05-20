@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+  labels:
+    app.kubernetes.io/instance: homeassistant
+    external-dns: enabled
+  annotations:
+    route.openshift.io/termination: edge
+    external-dns.alpha.kubernetes.io/hostname: homeassistant.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: homeassistant.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homeassistant
+                port:
+                  name: http-hass
+  tls:
+    - hosts:
+        - homeassistant.garrettholland.com
+      secretName: homeassistant-tls
