@@ -69,10 +69,46 @@ spec:
               name: tmp
             - mountPath: /run
               name: run
+        - name: matter-server
+          image: harbor.lab.garrettholland.com/library/python-matter-server:stable
+          imagePullPolicy: Always
+          args:
+            - --storage-path
+            - /data
+            - --paa-root-cert-dir
+            - /data/credentials
+          ports:
+            - containerPort: 5580
+              name: matter-ws
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 5580
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - mountPath: /data
+              name: matter-data
       volumes:
         - name: homeassistant-pv
           persistentVolumeClaim:
             claimName: homeassistant-pvc
+        - name: matter-data
+          persistentVolumeClaim:
+            claimName: matter-server-pvc
         - name: tmp
           emptyDir: {}
         - name: run
