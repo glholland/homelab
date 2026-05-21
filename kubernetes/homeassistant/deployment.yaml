@@ -7,6 +7,8 @@ metadata:
   namespace: homeassistant
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: homeassistant
@@ -65,9 +67,13 @@ spec:
               name: homeassistant-pv
             - mountPath: /tmp
               name: tmp
+            - mountPath: /run
+              name: run
       volumes:
         - name: homeassistant-pv
           persistentVolumeClaim:
             claimName: homeassistant-pvc
         - name: tmp
+          emptyDir: {}
+        - name: run
           emptyDir: {}

@@ -10,6 +10,9 @@ allowedCapabilities: []
 defaultAddCapabilities: []
 requiredDropCapabilities:
   - ALL
+readOnlyRootFilesystem: false
+seccompProfiles:
+  - runtime/default
 runAsUser:
   type: RunAsAny
 fsGroup:

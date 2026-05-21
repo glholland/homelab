@@ -2,6 +2,7 @@ resources:
   - namespace.yaml
   - serviceaccount.yaml
   - scc.yaml
+  - clusterrolebinding.yaml
   - certificate.yaml
   - ingress.yaml
   - service.yaml
