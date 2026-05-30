@@ -30,6 +30,13 @@ spec:
             - -retentionPeriod=12
             - -httpListenAddr=:8428
             - -selfScrapeInterval=10s
+            # Query safety limits — reject before they OOM the pod
+            - -search.maxQueryDuration=30s
+            - -search.maxMemoryPerQuery=256MB
+            - -search.maxUniqueTimeseries=100000
+            - -search.logSlowQueryDuration=5s
+            # Cap memory usage at 80% of the container limit (2Gi)
+            - -memory.allowedPercent=80
             # Accept InfluxDB line protocol at /write (Telegraf compatibility)
             # Accept Prometheus remote write at /api/v1/write
             # Query via MetricsQL/PromQL at /api/v1/query and /api/v1/query_range
