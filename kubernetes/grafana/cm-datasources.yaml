@@ -24,3 +24,12 @@ data:
         secureJsonData:
           token: apiv3_change_me_to_a_random_token
         isDefault: true
+      - name: VictoriaMetrics
+        uid: victoriametrics
+        type: prometheus
+        access: proxy
+        url: http://victoriametrics.victoriametrics.svc:8428
+        editable: true
+        jsonData:
+          timeInterval: 20s
+        isDefault: false
