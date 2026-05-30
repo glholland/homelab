@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: victoriametrics
+  namespace: victoriametrics
+  labels:
+    app.kubernetes.io/name: victoriametrics
+    app.kubernetes.io/part-of: victoriametrics
+spec:
+  selector:
+    app.kubernetes.io/name: victoriametrics
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8428
+      targetPort: 8428

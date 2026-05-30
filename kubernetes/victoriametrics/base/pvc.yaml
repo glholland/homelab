@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: victoriametrics-data
+  namespace: victoriametrics
+  labels:
+    app.kubernetes.io/name: victoriametrics
+    app.kubernetes.io/part-of: victoriametrics
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: truenas-nfs-retain
+  resources:
+    requests:
+      storage: 50Gi
