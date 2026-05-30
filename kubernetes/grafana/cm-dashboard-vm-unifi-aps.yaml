@@ -179,13 +179,13 @@ data:
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-              "expr": "(\"snmp.UAP_memTotalReal\"{agent_host=~\"$ap\"} - \"snmp.UAP_memAvailReal\"{agent_host=~\"$ap\"}) * 1024",
+              "expr": "({__name__=\"snmp.UAP_memTotalReal\", agent_host=~\"$ap\"} - {__name__=\"snmp.UAP_memAvailReal\", agent_host=~\"$ap\"}) * 1024",
               "legendFormat": "{{agent_host}} used",
               "refId": "A"
             },
             {
               "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-              "expr": "\"snmp.UAP_memTotalReal\"{agent_host=~\"$ap\"} * 1024",
+              "expr": "{__name__=\"snmp.UAP_memTotalReal\", agent_host=~\"$ap\"} * 1024",
               "legendFormat": "{{agent_host}} total",
               "refId": "B"
             }
@@ -200,7 +200,7 @@ data:
           "targets": [
             {
               "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-              "expr": "\"snmp.UAP_sysUpTime\"{agent_host=~\"$ap\"} / 100",
+              "expr": "{__name__=\"snmp.UAP_sysUpTime\", agent_host=~\"$ap\"} / 100",
               "legendFormat": "{{agent_host}}",
               "refId": "A"
             }
