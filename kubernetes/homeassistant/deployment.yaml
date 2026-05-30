@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: homeassistant
+  name: homeassistant
+  namespace: homeassistant
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: homeassistant
+  template:
+    metadata:
+      labels:
+        app: homeassistant
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: homeassistant
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: homeassistant
+          image: harbor.lab.garrettholland.com/library/home-assistant:stable
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8123
+              name: http-hass
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 8123
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 5
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            successThreshold: 1
+            tcpSocket:
+              port: 8123
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          volumeMounts:
+            - mountPath: /config
+              name: homeassistant-pv
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /run
+              name: run
+        - name: matter-server
+          image: harbor.lab.garrettholland.com/library/python-matter-server:stable
+          imagePullPolicy: Always
+          args:
+            - --storage-path
+            - /data
+            - --paa-root-cert-dir
+            - /data/credentials
+          ports:
+            - containerPort: 5580
+              name: matter-ws
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 5580
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - mountPath: /data
+              name: matter-data
+      volumes:
+        - name: homeassistant-pv
+          persistentVolumeClaim:
+            claimName: homeassistant-pvc
+        - name: matter-data
+          persistentVolumeClaim:
+            claimName: matter-server-pvc
+        - name: tmp
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
