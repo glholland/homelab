@@ -1,0 +1,261 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-vm-router
+  namespace: grafana
+  labels:
+    grafana_dashboard: "1"
+data:
+  vm-router.json: |
+    {
+      "title": "UniFi Router (VictoriaMetrics)",
+      "uid": "vm-router",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-3h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "iface",
+            "label": "Interface",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+            "definition": "label_values(ifXTable_ifHCInOctets{agent_host=\"10.0.0.1\"}, ifName)",
+            "query": { "query": "label_values(ifXTable_ifHCInOctets{agent_host=\"10.0.0.1\"}, ifName)", "refId": "StandardVariableQuery" },
+            "multi": true,
+            "includeAll": true,
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "refresh": 2
+          }
+        ]
+      },
+      "panels": [
+        { "id": 100, "title": "WAN & LAN Traffic", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 1, "title": "WAN Throughput (eth1)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 1, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifXTable_ifHCInOctets{agent_host=\"10.0.0.1\", ifName=\"eth1\"}[2m]) * 8",
+              "legendFormat": "WAN IN",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifXTable_ifHCOutOctets{agent_host=\"10.0.0.1\", ifName=\"eth1\"}[2m]) * 8 * -1",
+              "legendFormat": "WAN OUT",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "bps", "custom": { "lineWidth": 2, "fillOpacity": 15 } },
+            "overrides": [
+              { "matcher": { "id": "byName", "options": "WAN IN" }, "properties": [ { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } } ] },
+              { "matcher": { "id": "byName", "options": "WAN OUT" }, "properties": [ { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } } ] }
+            ]
+          },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 2, "title": "LAN Bridge Throughput (br0)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 1, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifXTable_ifHCInOctets{agent_host=\"10.0.0.1\", ifName=\"br0\"}[2m]) * 8",
+              "legendFormat": "LAN IN",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifXTable_ifHCOutOctets{agent_host=\"10.0.0.1\", ifName=\"br0\"}[2m]) * 8 * -1",
+              "legendFormat": "LAN OUT",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bps", "custom": { "lineWidth": 2, "fillOpacity": 15 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 3, "title": "All Interfaces RX (bps)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 9, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifXTable_ifHCInOctets{agent_host=\"10.0.0.1\", ifName=~\"$iface\"}[2m]) * 8 > 1000",
+              "legendFormat": "{{ifName}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bps", "custom": { "lineWidth": 1, "fillOpacity": 5 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 4, "title": "All Interfaces TX (bps)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 9, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifXTable_ifHCOutOctets{agent_host=\"10.0.0.1\", ifName=~\"$iface\"}[2m]) * 8 > 1000",
+              "legendFormat": "{{ifName}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bps", "custom": { "lineWidth": 1, "fillOpacity": 5 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 101, "title": "CPU & Memory", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 17, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 5, "title": "CPU Utilization (%)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 18, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "100 * (rate(snmp_ssCpuRawUser{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawSystem{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawKernel{agent_host=\"10.0.0.1\"}[2m])) / (rate(snmp_ssCpuRawUser{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawSystem{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawKernel{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawIdle{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawWait{agent_host=\"10.0.0.1\"}[2m]))",
+              "legendFormat": "CPU %",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "100 * rate(snmp_ssCpuRawWait{agent_host=\"10.0.0.1\"}[2m]) / (rate(snmp_ssCpuRawUser{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawSystem{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawKernel{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawIdle{agent_host=\"10.0.0.1\"}[2m]) + rate(snmp_ssCpuRawWait{agent_host=\"10.0.0.1\"}[2m]))",
+              "legendFormat": "IOWait %",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 15 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 6, "title": "Memory Usage", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 18, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "(snmp_memTotalReal{agent_host=\"10.0.0.1\"} - snmp_memAvailReal{agent_host=\"10.0.0.1\"}) * 1024",
+              "legendFormat": "Used",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "snmp_memTotalReal{agent_host=\"10.0.0.1\"} * 1024",
+              "legendFormat": "Total",
+              "refId": "B"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "snmp_memBuffer{agent_host=\"10.0.0.1\"} * 1024",
+              "legendFormat": "Buffers",
+              "refId": "C"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "snmp_memCached{agent_host=\"10.0.0.1\"} * 1024",
+              "legendFormat": "Cached",
+              "refId": "D"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 102, "title": "Network Stats", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 26, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 7, "title": "TCP Established Connections", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 27, "w": 8, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "snmp_tcpCurrEstab{agent_host=\"10.0.0.1\"}",
+              "legendFormat": "Established",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 15 } } },
+          "options": { "tooltip": { "mode": "single" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 8, "title": "IP Routing Table Entries", "type": "stat",
+          "gridPos": { "x": 8, "y": 27, "w": 4, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "snmp_inetCidrRouteNumber{agent_host=\"10.0.0.1\"}",
+              "legendFormat": "Routes",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "blue", "value": null } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background" }
+        },
+        {
+          "id": 9, "title": "System Load Average", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 27, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "laTable_laLoadFloat{agent_host=\"10.0.0.1\"}",
+              "legendFormat": "{{laNames}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 103, "title": "Interface Errors & Drops", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 35, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 10, "title": "Interface Input Errors/Drops Rate", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 36, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifTable_ifInErrors{agent_host=\"10.0.0.1\", ifName=~\"$iface\"}[2m]) > 0",
+              "legendFormat": "{{ifName}} errors",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifTable_ifInDiscards{agent_host=\"10.0.0.1\", ifName=~\"$iface\"}[2m]) > 0",
+              "legendFormat": "{{ifName}} discards",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 11, "title": "Interface Output Errors/Drops Rate", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 36, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifTable_ifOutErrors{agent_host=\"10.0.0.1\", ifName=~\"$iface\"}[2m]) > 0",
+              "legendFormat": "{{ifName}} errors",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(ifTable_ifOutDiscards{agent_host=\"10.0.0.1\", ifName=~\"$iface\"}[2m]) > 0",
+              "legendFormat": "{{ifName}} discards",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "pps", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        }
+      ]
+    }

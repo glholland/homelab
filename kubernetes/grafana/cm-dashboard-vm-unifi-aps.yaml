@@ -1,0 +1,212 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-vm-unifi-aps
+  namespace: grafana
+  labels:
+    grafana_dashboard: "1"
+data:
+  vm-unifi-aps.json: |
+    {
+      "title": "UniFi APs (VictoriaMetrics)",
+      "uid": "vm-unifi-aps",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "1m",
+      "time": { "from": "now-3h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "ap",
+            "label": "Access Point",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+            "definition": "label_values(unifiRadioTable_unifiRadioCuTotal, agent_host)",
+            "query": { "query": "label_values(unifiRadioTable_unifiRadioCuTotal, agent_host)", "refId": "StandardVariableQuery" },
+            "multi": true,
+            "includeAll": true,
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "refresh": 2
+          }
+        ]
+      },
+      "panels": [
+        { "id": 100, "title": "Wireless Clients", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 1, "title": "Connected Clients — House SSID", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 1, "w": 16, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "unifiVapTable_unifiVapNumStations{agent_host=~\"$ap\", unifiVapEssId=\"House\"}",
+              "legendFormat": "{{agent_host}} {{unifiRadioRadio}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "short", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10, "spanNulls": false } }
+          },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 2, "title": "Total Clients per AP", "type": "stat",
+          "gridPos": { "x": 16, "y": 1, "w": 8, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "sum by (agent_host) (unifiVapTable_unifiVapNumStations{agent_host=~\"$ap\", unifiVapEssId!~\"element.*|vwire.*\"})",
+              "legendFormat": "{{agent_host}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 15 }, { "color": "red", "value": 30 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" }
+        },
+
+        { "id": 101, "title": "Radio Performance", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 3, "title": "Channel Utilization Total (%)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 10, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "unifiRadioTable_unifiRadioCuTotal{agent_host=~\"$ap\"}",
+              "legendFormat": "{{agent_host}} {{unifiRadioName}} ({{unifiRadioRadio}})",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 4, "title": "Self-RX Channel Utilization (%)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 10, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "unifiRadioTable_unifiRadioCuSelfRx{agent_host=~\"$ap\"}",
+              "legendFormat": "{{agent_host}} {{unifiRadioName}} ({{unifiRadioRadio}})",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 5, "title": "Noise Floor (dBm)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 18, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "unifiRadioTable_unifiRadioRxNf{agent_host=~\"$ap\"}",
+              "legendFormat": "{{agent_host}} {{unifiRadioName}} ({{unifiRadioRadio}})",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "dBm", "custom": { "lineWidth": 2, "fillOpacity": 5 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "asc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 6, "title": "TX Power (dBm)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 18, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "unifiRadioTable_unifiRadioTxPower{agent_host=~\"$ap\"}",
+              "legendFormat": "{{agent_host}} {{unifiRadioName}} ({{unifiRadioRadio}})",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "dBm", "custom": { "lineWidth": 2, "fillOpacity": 5 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 102, "title": "Traffic", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 26, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 7, "title": "AP Ethernet RX/TX (bps)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 27, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(unifiIfTable_unifiIfRxBytes{agent_host=~\"$ap\", unifiIfName=\"eth0\"}[2m]) * 8",
+              "legendFormat": "{{agent_host}} RX",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(unifiIfTable_unifiIfTxBytes{agent_host=~\"$ap\", unifiIfName=\"eth0\"}[2m]) * 8 * -1",
+              "legendFormat": "{{agent_host}} TX",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bps", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 8, "title": "VAP Wireless RX/TX per SSID (bps)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 27, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(unifiVapTable_unifiVapRxBytes{agent_host=~\"$ap\", unifiVapEssId!~\"element.*|vwire.*\"}[2m]) * 8",
+              "legendFormat": "{{agent_host}} {{unifiVapEssId}} RX",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "irate(unifiVapTable_unifiVapTxBytes{agent_host=~\"$ap\", unifiVapEssId!~\"element.*|vwire.*\"}[2m]) * 8 * -1",
+              "legendFormat": "{{agent_host}} {{unifiVapEssId}} TX",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bps", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 103, "title": "System Health", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 35, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 9, "title": "AP Memory Used (bytes)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 36, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "(\"snmp.UAP_memTotalReal\"{agent_host=~\"$ap\"} - \"snmp.UAP_memAvailReal\"{agent_host=~\"$ap\"}) * 1024",
+              "legendFormat": "{{agent_host}} used",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "\"snmp.UAP_memTotalReal\"{agent_host=~\"$ap\"} * 1024",
+              "legendFormat": "{{agent_host}} total",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 10, "title": "AP Uptime", "type": "stat",
+          "gridPos": { "x": 12, "y": 36, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+              "expr": "\"snmp.UAP_sysUpTime\"{agent_host=~\"$ap\"} / 100",
+              "legendFormat": "{{agent_host}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 3600 }, { "color": "green", "value": 86400 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" }
+        }
+      ]
+    }
