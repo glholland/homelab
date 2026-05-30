@@ -1,0 +1,372 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-okd
+  namespace: grafana
+  labels:
+    grafana_dashboard: "1"
+data:
+  okd.json: |
+    {
+      "title": "OKD Cluster",
+      "uid": "okd-cluster",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "1m",
+      "time": { "from": "now-3h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "node",
+            "label": "Node",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+            "definition": "label_values(kube_node_info, node)",
+            "query": { "query": "label_values(kube_node_info, node)", "refId": "StandardVariableQuery" },
+            "multi": true,
+            "includeAll": true,
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "refresh": 2
+          },
+          {
+            "name": "namespace",
+            "label": "Namespace",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+            "definition": "label_values(kube_namespace_labels, namespace)",
+            "query": { "query": "label_values(kube_namespace_labels, namespace)", "refId": "StandardVariableQuery" },
+            "multi": true,
+            "includeAll": true,
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "refresh": 2
+          }
+        ]
+      },
+      "panels": [
+        { "id": 100, "title": "Cluster Overview", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 1, "title": "Nodes Ready", "type": "stat",
+          "gridPos": { "x": 0, "y": 1, "w": 4, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "count(kube_node_status_condition{condition=\"Ready\",status=\"true\"} == 1)",
+              "legendFormat": "Ready",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "count(kube_node_info)",
+              "legendFormat": "Total",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal", "textMode": "value_and_name", "colorMode": "background" }
+        },
+        {
+          "id": 2, "title": "Pods Running", "type": "stat",
+          "gridPos": { "x": 4, "y": 1, "w": 4, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "count(kube_pod_status_phase{phase=\"Running\"})",
+              "legendFormat": "Running",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "count(kube_pod_status_phase{phase=~\"Pending|Failed|Unknown\"})",
+              "legendFormat": "Unhealthy",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "green", "value": null } ] } },
+            "overrides": [ { "matcher": { "id": "byName", "options": "Unhealthy" }, "properties": [ { "id": "thresholds", "value": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 } ] } }, { "id": "color", "value": { "mode": "thresholds" } } ] } ]
+          },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal", "textMode": "value_and_name", "colorMode": "background" }
+        },
+        {
+          "id": 3, "title": "Cluster Operators Degraded", "type": "stat",
+          "gridPos": { "x": 8, "y": 1, "w": 4, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "count(cluster_operator_conditions{condition=\"Degraded\"} == 1) or vector(0)",
+              "legendFormat": "Degraded",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background" }
+        },
+        {
+          "id": 4, "title": "etcd Has Leader", "type": "stat",
+          "gridPos": { "x": 12, "y": 1, "w": 4, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "min(etcd_server_has_leader)",
+              "legendFormat": "Has Leader",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "mappings": [ { "type": "value", "options": { "0": { "text": "NO LEADER", "color": "red" }, "1": { "text": "OK", "color": "green" } } } ], "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background" }
+        },
+        {
+          "id": 5, "title": "API Server Availability", "type": "stat",
+          "gridPos": { "x": 16, "y": 1, "w": 4, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum(rate(apiserver_request_total{code=~\"5..\"}[5m])) / sum(rate(apiserver_request_total[5m])) * 100",
+              "legendFormat": "Error %",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background" }
+        },
+        {
+          "id": 6, "title": "Cluster CPU Utilization (%)", "type": "stat",
+          "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum(rate(node_cpu_seconds_total{mode!=\"idle\"}[5m])) / sum(rate(node_cpu_seconds_total[5m])) * 100",
+              "legendFormat": "CPU %",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "value_and_name", "colorMode": "background" }
+        },
+
+        { "id": 101, "title": "Compute — CPU", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 5, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 7, "title": "Node CPU Utilization (%)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum by (instance) (rate(node_cpu_seconds_total{mode!=\"idle\",instance=~\"$node.*\"}[5m])) / sum by (instance) (rate(node_cpu_seconds_total{instance=~\"$node.*\"}[5m])) * 100",
+              "legendFormat": "{{instance}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 8, "title": "Cluster CPU Usage by Mode", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum by (mode) (rate(node_cpu_seconds_total{mode!=\"idle\"}[5m]))",
+              "legendFormat": "{{mode}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10, "stacking": { "mode": "normal", "group": "A" } } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 102, "title": "Compute — Memory", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 14, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 9, "title": "Node Memory Utilization (%)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 15, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
+              "legendFormat": "{{instance}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 10, "title": "Node Memory Breakdown", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 15, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)",
+              "legendFormat": "Used",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum(node_memory_MemTotal_bytes)",
+              "legendFormat": "Total",
+              "refId": "B"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum(node_memory_Buffers_bytes + node_memory_Cached_bytes)",
+              "legendFormat": "Buffers+Cache",
+              "refId": "C"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 103, "title": "etcd", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 23, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 11, "title": "etcd Leader Status", "type": "stat",
+          "gridPos": { "x": 0, "y": 24, "w": 4, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "etcd_server_has_leader",
+              "legendFormat": "{{instance}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "mappings": [ { "type": "value", "options": { "0": { "text": "NO LEADER", "color": "red" }, "1": { "text": "Leader OK", "color": "green" } } } ], "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal", "textMode": "value_and_name", "colorMode": "background" }
+        },
+        {
+          "id": 12, "title": "etcd WAL Fsync Latency p99 (s)", "type": "timeseries",
+          "gridPos": { "x": 4, "y": 24, "w": 10, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m]))",
+              "legendFormat": "WAL p99 {{instance}}",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[5m]))",
+              "legendFormat": "Backend commit p99 {{instance}}",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2, "fillOpacity": 5 }, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.1 } ] } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 13, "title": "etcd DB Size & Proposals", "type": "timeseries",
+          "gridPos": { "x": 14, "y": 24, "w": 10, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "etcd_mvcc_db_total_size_in_bytes",
+              "legendFormat": "DB size {{instance}}",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "rate(etcd_server_proposals_committed_total[5m])",
+              "legendFormat": "Proposals/s {{instance}}",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": { "custom": { "lineWidth": 2, "fillOpacity": 5 } },
+            "overrides": [
+              { "matcher": { "id": "byRegexp", "options": "DB size.*" }, "properties": [ { "id": "unit", "value": "bytes" }, { "id": "custom.axisPlacement", "value": "left" } ] },
+              { "matcher": { "id": "byRegexp", "options": "Proposals.*" }, "properties": [ { "id": "unit", "value": "ops" }, { "id": "custom.axisPlacement", "value": "right" } ] }
+            ]
+          },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 104, "title": "API Server", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 32, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 14, "title": "API Request Rate by Verb (rps)", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 33, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "sum by (verb) (rate(apiserver_request_total[5m]))",
+              "legendFormat": "{{verb}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "lineWidth": 2, "fillOpacity": 10, "stacking": { "mode": "normal", "group": "A" } } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 15, "title": "API Request Duration p99 by Verb (s)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 33, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "histogram_quantile(0.99, sum by (verb, le) (rate(apiserver_request_duration_seconds_bucket{verb!~\"WATCH|CONNECT\"}[5m])))",
+              "legendFormat": "{{verb}} p99",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2, "fillOpacity": 5 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+
+        { "id": 105, "title": "Workloads", "type": "row", "collapsed": false, "gridPos": { "x": 0, "y": 41, "w": 24, "h": 1 }, "panels": [] },
+        {
+          "id": 16, "title": "Pod Count by Namespace", "type": "timeseries",
+          "gridPos": { "x": 0, "y": 42, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "count by (namespace) (kube_pod_info{namespace=~\"$namespace\"}) > 0",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 5 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 17, "title": "Pod Restarts Rate (top pods)", "type": "timeseries",
+          "gridPos": { "x": 12, "y": 42, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "topk(10, rate(kube_pod_container_status_restarts_total{namespace=~\"$namespace\"}[15m]) > 0)",
+              "legendFormat": "{{namespace}}/{{pod}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+          "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 18, "title": "PVC Utilization (top 15 by usage %)", "type": "bargauge",
+          "gridPos": { "x": 0, "y": 50, "w": 24, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "okd-prometheus" },
+              "expr": "topk(15, kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100)",
+              "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "thresholds" }, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 } ] } } },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal", "displayMode": "gradient", "valueMode": "color" }
+        }
+      ]
+    }

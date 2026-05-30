@@ -26,6 +26,12 @@ spec:
             - containerPort: 3000
               name: http-grafana
               protocol: TCP
+          env:
+            - name: GF_OKD_PROMETHEUS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-monitor-token
+                  key: token
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -74,6 +80,18 @@ spec:
               name: grafana-dashboard-unifi-aps
               subPath: unifi-aps.json
               readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/vm-unifi-aps.json
+              name: grafana-dashboard-vm-unifi-aps
+              subPath: vm-unifi-aps.json
+              readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/vm-router.json
+              name: grafana-dashboard-vm-router
+              subPath: vm-router.json
+              readOnly: true
+            - mountPath: /etc/grafana/provisioning/dashboards/okd.json
+              name: grafana-dashboard-okd
+              subPath: okd.json
+              readOnly: true
       volumes:
         - name: grafana-pv
           persistentVolumeClaim:
@@ -90,3 +108,12 @@ spec:
         - name: grafana-dashboard-unifi-aps
           configMap:
             name: grafana-dashboard-unifi-aps
+        - name: grafana-dashboard-vm-unifi-aps
+          configMap:
+            name: grafana-dashboard-vm-unifi-aps
+        - name: grafana-dashboard-vm-router
+          configMap:
+            name: grafana-dashboard-vm-router
+        - name: grafana-dashboard-okd
+          configMap:
+            name: grafana-dashboard-okd
