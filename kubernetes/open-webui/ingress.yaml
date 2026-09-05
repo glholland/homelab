@@ -1,0 +1,34 @@
+# NOTE: on the live cluster this app is exposed via a plain networking.k8s.io/v1
+# Ingress (not a hand-written route.openshift.io/v1 Route, as most other apps in
+# this repo use). OKD's router auto-generates a Route from it. Captured
+# faithfully here as an Ingress; see report for the discrepancy vs. repo
+# convention.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: open-webui
+  namespace: open-webui
+  labels:
+    app.kubernetes.io/name: open-webui
+    external-dns: enabled
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: chat.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+    route.openshift.io/termination: edge
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: chat.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: open-webui
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - chat.garrettholland.com
+      secretName: open-webui-tls
