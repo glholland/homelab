@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pterodactyl-panel-config
+  namespace: pterodactyl
+data:
+  APP_DEBUG: "false"
+  APP_ENV: production
+  APP_TIMEZONE: America/Detroit
+  APP_URL: https://pterodactyl.garrettholland.com
+  CACHE_DRIVER: redis
+  DB_CONNECTION: mysql
+  DB_DATABASE: panel
+  DB_HOST: pterodactyl-mariadb
+  DB_PORT: "3306"
+  DB_USERNAME: pterodactyl
+  LOG_CHANNEL: stack
+  MAIL_FROM: pterodactyl@garrettholland.com
+  MAIL_FROM_NAME: Pterodactyl
+  MAIL_MAILER: log
+  QUEUE_CONNECTION: redis
+  REDIS_HOST: pterodactyl-redis
+  REDIS_PORT: "6379"
+  RUN_MIGRATIONS: "true"
+  SESSION_DRIVER: redis
+  TRUSTED_PROXIES: "*"

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pterodactyl-mariadb
+  namespace: pterodactyl
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: pterodactyl-mariadb
+    app.kubernetes.io/part-of: pterodactyl
+spec:
+  serviceName: pterodactyl-mariadb
+  replicas: 1
+  podManagementPolicy: OrderedReady
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pterodactyl-mariadb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: database
+        app.kubernetes.io/name: pterodactyl-mariadb
+        app.kubernetes.io/part-of: pterodactyl
+    spec:
+      serviceAccountName: pterodactyl-apps
+      containers:
+        - name: mariadb
+          image: docker.io/library/mariadb:11.4
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MARIADB_DATABASE
+              value: panel
+            - name: MARIADB_USER
+              value: pterodactyl
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pterodactyl-mariadb-secret
+                  key: MARIADB_PASSWORD
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pterodactyl-mariadb-secret
+                  key: MARIADB_ROOT_PASSWORD
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - mariadb-admin ping -h 127.0.0.1 -uroot -p"$MARIADB_ROOT_PASSWORD"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pterodactyl-mariadb-data
+  updateStrategy:
+    type: RollingUpdate

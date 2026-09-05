@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pterodactyl-redis
+  namespace: pterodactyl
+  labels:
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/name: pterodactyl-redis
+    app.kubernetes.io/part-of: pterodactyl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pterodactyl-redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: cache
+        app.kubernetes.io/name: pterodactyl-redis
+        app.kubernetes.io/part-of: pterodactyl
+    spec:
+      serviceAccountName: pterodactyl-apps
+      containers:
+        - name: redis
+          image: docker.io/library/redis:7.4-alpine
+          imagePullPolicy: IfNotPresent
+          args:
+            - redis-server
+            - --appendonly
+            - "no"
+            - --save
+            - ""
+            - --dir
+            - /tmp
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
