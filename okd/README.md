@@ -144,3 +144,26 @@ watch -n 3 oc get co --kubeconfig auth/kubeconfig
 Check out the console when it's up
 
 [Your new OKD console](https://console-openshift-console.apps.okd.garrettholland.com/dashboards)
+
+## Lab Ingress Controller
+
+We use a custom IngressController to serve internal lab services on `*.lab.garrettholland.com`.
+
+1.  **Certificate**: A wildcard certificate is provisioned via cert-manager.
+
+    ```bash
+    oc apply -f okd/lab-wildcard-cert.yaml
+    ```
+
+2.  **IngressController**: The `lab` IngressController is configured to use this certificate and listen for routes with the label `type: lab`.
+
+    ```bash
+    oc -n openshift-ingress-operator patch ingresscontroller lab --type=merge -p '{"spec":{"defaultCertificate":{"name":"lab-ingress-cert-tls"}}}'
+    ```
+
+3.  **Usage**: To expose a service via this controller, add the label `type: lab` to the Route.
+    ```yaml
+    metadata:
+      labels:
+        type: lab
+    ```

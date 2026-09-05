@@ -4,3 +4,6 @@ resources:
   - ../../base
   - ./cluster-version.yaml
   - ./ingress-controller.yaml
+  - ./lab-ingress-controller.yaml
+  - ./lab-certificate.yaml
+  - ./rbac.yaml

@@ -1,0 +1,17 @@
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: lab
+  namespace: openshift-ingress-operator
+spec:
+  defaultCertificate:
+    name: lab-ingress-cert-tls
+  domain: lab.garrettholland.com
+  endpointPublishingStrategy:
+    type: NodePortService
+  replicas: 3
+  routeAdmission:
+    wildcardPolicy: WildcardsAllowed
+  routeSelector:
+    matchLabels:
+      type: lab
