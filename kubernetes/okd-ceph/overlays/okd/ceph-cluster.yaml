@@ -1,0 +1,55 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v18.2.4
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 2
+    modules:
+      - name: rook
+        enabled: true
+  dashboard:
+    enabled: true
+    ssl: true
+  monitoring:
+    enabled: true
+  network:
+    connections:
+      encryption:
+        enabled: false
+      compression:
+        enabled: false
+  crashCollector:
+    disable: false
+  logCollector:
+    enabled: true
+    periodicity: daily
+    maxLogSize: 500M
+  cleanupPolicy:
+    confirmation: ""
+    sanitizeDisks:
+      method: quick
+      dataSource: zero
+      iteration: 1
+    allowUninstallWithVolumes: false
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+      - name: "worker-1"
+        devices:
+          - name: "sda"
+      - name: "worker-2"
+        devices:
+          - name: "sda"
+      - name: "worker-3"
+        devices:
+          - name: "sda"
