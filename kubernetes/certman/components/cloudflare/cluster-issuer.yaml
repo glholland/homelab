@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/instance: certificate-manager
 spec:
   acme:
-    email: <path:projects/project_id/secrets/cf_email#cf_email>
+    email: <path:projects/812524172865/secrets/cf_email#cf_email>
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: issuer-letsencrypt-staging
@@ -20,7 +20,7 @@ spec:
             apiTokenSecretRef:
               key: api-token
               name: cloudflare-api-token-secret
-            email: <path:projects/project_id/secrets/cf_email#cf_email>
+            email: <path:projects/812524172865/secrets/cf_email#cf_email>
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -34,7 +34,7 @@ metadata:
     app.kubernetes.io/instance: certificate-manager
 spec:
   acme:
-    email: <path:projects/project_id/secrets/cf_email#cf_email>
+    email: <path:projects/812524172865/secrets/cf_email#cf_email>
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: issuer-letsencrypt
@@ -44,4 +44,4 @@ spec:
             apiTokenSecretRef:
               key: api-token
               name: cloudflare-api-token-secret
-            email: <path:projects/project_id/secrets/cf_email#cf_email>
+            email: <path:projects/812524172865/secrets/cf_email#cf_email>
