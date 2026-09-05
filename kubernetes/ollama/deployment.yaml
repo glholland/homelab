@@ -1,0 +1,76 @@
+# NOTE: at capture time this Deployment is unschedulable -- its only GPU-capable
+# node, skynet.okd.garrettholland.com (labeled nvidia.com/gpu.present=true),
+# is NotReady. One pod is stuck Terminating and its replacement is Pending.
+# The spec below reflects the intended/last-known-good configuration, not the
+# current runtime state.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: ollama
+  labels:
+    app.kubernetes.io/name: ollama
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+    spec:
+      serviceAccountName: ollama
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Equal
+          value: present
+          effect: NoSchedule
+      containers:
+        - name: ollama
+          image: ollama/ollama:0.5.11
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 11434
+          env:
+            - name: OLLAMA_HOST
+              value: 0.0.0.0
+            - name: OLLAMA_ORIGINS
+              value: "*"
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "4"
+              memory: 16Gi
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: data
+              mountPath: /root/.ollama
+        - name: ollama-exporter
+          image: ghcr.io/maravexa/ollama-exporter:latest
+          imagePullPolicy: Always
+          ports:
+            - name: metrics
+              containerPort: 9400
+          env:
+            - name: OLLAMA_URL
+              value: http://localhost:11434
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ollama-data
