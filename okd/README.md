@@ -1,6 +1,6 @@
 # OKD
 
-[Installing an OpenShift Container Platform cluster with the Agent-based Installer](https://docs.openshift.com/container-platform/4.16/installing/installing_with_agent_based_installer/installing-with-agent-based-installer.html#agent-install-verifying-architectures_installing-with-agent-based-installer)
+[Installing an OpenShift Container Platform cluster with the Agent-based Installer](https://docs.openshift.com/container-platform/latest/installing/installing_with_agent_based_installer/installing-with-agent-based-installer.html#agent-install-verifying-architectures_installing-with-agent-based-installer)
 
 ## Install Dependencies
 
@@ -30,13 +30,13 @@ sudo yum install -y kubectl
 Download, extract, and move to bin
 
 ```bash
-wget https://github.com/okd-project/okd/releases/download/4.15.0-0.okd-2024-03-10-010116/openshift-install-linux-4.15.0-0.okd-2024-03-10-010116.tar.gz -O /tmp/openshift-install.tar.gz
+wget https://github.com/okd-project/okd/releases/download/4.22.0-okd-scos.0/openshift-install-linux-4.22.0-okd-scos.0.tar.gz -O /tmp/openshift-install.tar.gz
 
 tar xzf /tmp/openshift-install.tar.gz -C ~/bin
 ```
 
 ```bash
-wget https://github.com/okd-project/okd/releases/download/4.15.0-0.okd-2024-03-10-010116/openshift-client-linux-4.15.0-0.okd-2024-03-10-010116.tar.gz -O /tmp/openshift-client.tar.gz
+wget https://github.com/okd-project/okd/releases/download/4.22.0-okd-scos.0/openshift-client-linux-4.22.0-okd-scos.0.tar.gz -O /tmp/openshift-client.tar.gz
 
 tar xzf /tmp/openshift-client.tar.gz -C ~/bin
 ```
@@ -144,3 +144,26 @@ watch -n 3 oc get co --kubeconfig auth/kubeconfig
 Check out the console when it's up
 
 [Your new OKD console](https://console-openshift-console.apps.okd.garrettholland.com/dashboards)
+
+## Lab Ingress Controller
+
+We use a custom IngressController to serve internal lab services on `*.lab.garrettholland.com`.
+
+1.  **Certificate**: A wildcard certificate is provisioned via cert-manager.
+
+    ```bash
+    oc apply -f okd/lab-wildcard-cert.yaml
+    ```
+
+2.  **IngressController**: The `lab` IngressController is configured to use this certificate and listen for routes with the label `type: lab`.
+
+    ```bash
+    oc -n openshift-ingress-operator patch ingresscontroller lab --type=merge -p '{"spec":{"defaultCertificate":{"name":"lab-ingress-cert-tls"}}}'
+    ```
+
+3.  **Usage**: To expose a service via this controller, add the label `type: lab` to the Route.
+    ```yaml
+    metadata:
+      labels:
+        type: lab
+    ```
