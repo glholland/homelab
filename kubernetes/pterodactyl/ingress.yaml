@@ -1,0 +1,34 @@
+# NOTE: on the live cluster this app is exposed via a plain networking.k8s.io/v1
+# Ingress (not a hand-written route.openshift.io/v1 Route, as most other apps in
+# this repo use). OKD's router auto-generates a Route from it. Captured faithfully
+# here as an Ingress; see report for the discrepancy vs. repo convention.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pterodactyl
+  namespace: pterodactyl
+  labels:
+    app.kubernetes.io/name: pterodactyl-panel
+    app.kubernetes.io/part-of: pterodactyl
+    external-dns: enabled
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: pterodactyl.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+    route.openshift.io/termination: edge
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: pterodactyl.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pterodactyl-panel
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - pterodactyl.garrettholland.com
+      secretName: pterodactyl-tls

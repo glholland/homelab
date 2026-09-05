@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pterodactyl-cert
+  namespace: pterodactyl
+  labels:
+    app.kubernetes.io/name: pterodactyl-panel
+    app.kubernetes.io/part-of: pterodactyl
+spec:
+  dnsNames:
+    - pterodactyl.garrettholland.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  secretName: pterodactyl-tls
