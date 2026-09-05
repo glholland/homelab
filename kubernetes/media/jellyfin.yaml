@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: jellyfin
+    app.kubernetes.io/component: streaming
+    app.kubernetes.io/part-of: media-stack
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jellyfin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jellyfin
+        app.kubernetes.io/component: streaming
+        app.kubernetes.io/part-of: media-stack
+    spec:
+      serviceAccountName: media-apps
+      containers:
+        - name: jellyfin
+          image: lscr.io/linuxserver/jellyfin:10.11.11
+          ports:
+            - name: http
+              containerPort: 8096
+              protocol: TCP
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: America/Detroit
+            - name: JELLYFIN_PublishedServerUrl
+              value: https://jellyfin.garrettholland.com
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "6"
+              memory: 8Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: transcodes
+              mountPath: /config/transcodes
+            - name: cache
+              mountPath: /cache
+            - name: movies
+              mountPath: /movies
+            - name: tvshows
+              mountPath: /tvshows
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin-config
+        - name: transcodes
+          emptyDir:
+            sizeLimit: 20Gi
+        - name: cache
+          emptyDir:
+            sizeLimit: 5Gi
+        - name: movies
+          persistentVolumeClaim:
+            claimName: media-movies
+        - name: tvshows
+          persistentVolumeClaim:
+            claimName: media-tvshows
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: jellyfin
+    app.kubernetes.io/part-of: media-stack
+spec:
+  selector:
+    app.kubernetes.io/name: jellyfin
+  ports:
+    - name: http
+      port: 8096
+      targetPort: 8096
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin
+  namespace: media
+  labels:
+    app.kubernetes.io/name: jellyfin
+    app.kubernetes.io/part-of: media-stack
+    external-dns: enabled
+  annotations:
+    route.openshift.io/termination: edge
+    external-dns.alpha.kubernetes.io/hostname: jellyfin.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: jellyfin.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyfin
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - jellyfin.garrettholland.com
+      secretName: jellyfin-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jellyfin-cert
+  namespace: media
+  labels:
+    app.kubernetes.io/name: jellyfin
+    app.kubernetes.io/part-of: media-stack
+spec:
+  secretName: jellyfin-tls
+  dnsNames:
+    - jellyfin.garrettholland.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt

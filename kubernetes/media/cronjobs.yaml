@@ -1,0 +1,103 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backlog-search
+  namespace: media
+  labels:
+    app.kubernetes.io/name: backlog-search
+    app.kubernetes.io/part-of: media-stack
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: backlog-search
+            app.kubernetes.io/part-of: media-stack
+        spec:
+          serviceAccountName: media-apps
+          restartPolicy: OnFailure
+          containers:
+            - name: backlog-search
+              image: alpine:3.20
+              command: ["/bin/sh", "/scripts/search.sh"]
+              envFrom:
+                - secretRef:
+                    name: recyclarr-api-keys
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 32Mi
+                limits:
+                  cpu: 250m
+                  memory: 128Mi
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+          volumes:
+            - name: script
+              configMap:
+                name: backlog-search-script
+                defaultMode: 0755
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: recyclarr
+  namespace: media
+  labels:
+    app.kubernetes.io/name: recyclarr
+    app.kubernetes.io/part-of: media-stack
+spec:
+  schedule: "0 3 * * 0"
+  timeZone: America/Detroit
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: recyclarr
+            app.kubernetes.io/part-of: media-stack
+        spec:
+          serviceAccountName: media-apps
+          restartPolicy: OnFailure
+          containers:
+            - name: recyclarr
+              image: ghcr.io/recyclarr/recyclarr:8.6.0
+              args: ["sync"]
+              env:
+                - name: TZ
+                  value: America/Detroit
+                - name: RECYCLARR_CONFIG_DIR
+                  value: /config
+              envFrom:
+                - secretRef:
+                    name: recyclarr-api-keys
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              volumeMounts:
+                - name: appdata
+                  mountPath: /config
+                - name: config
+                  mountPath: /config/recyclarr.yml
+                  subPath: recyclarr.yml
+          volumes:
+            - name: appdata
+              emptyDir: {}
+            - name: config
+              configMap:
+                name: recyclarr-config
