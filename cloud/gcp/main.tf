@@ -11,6 +11,19 @@ provider "google-beta" {
 }
 
 terraform {
+  # secretmanager.tf uses the write-only argument secret_data_wo, which
+  # requires google provider 6.x or newer.
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 6.14"
+    }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = ">= 6.14"
+    }
+  }
+
   backend "gcs" {
     bucket = "homelab-tfstate-26300"
     prefix = "terraform/state"
