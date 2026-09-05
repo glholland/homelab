@@ -3,3 +3,11 @@ terraform.tfstate
 terraform.tfstate.backup
 secrets.tfvars
 working-dir/
+
+# OpenShift agent-based install artifacts (contain cluster-admin credentials)
+okd/okd-agent-based-install/auth/
+okd/okd-agent-based-install/*.log
+okd/okd-agent-based-install/.openshift_install*
+okd/okd-agent-based-install/rendezvousIP
+okd/okd-agent-based-install/*.iso
+okd/okd-agent-based-install/*.bak
