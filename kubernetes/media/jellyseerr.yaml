@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyseerr
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: jellyseerr
+    app.kubernetes.io/component: requests
+    app.kubernetes.io/part-of: media-stack
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jellyseerr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jellyseerr
+        app.kubernetes.io/component: requests
+        app.kubernetes.io/part-of: media-stack
+    spec:
+      serviceAccountName: media-apps
+      containers:
+        - name: jellyseerr
+          image: docker.io/fallenbagel/jellyseerr:2.7.3
+          ports:
+            - name: http
+              containerPort: 5055
+              protocol: TCP
+          env:
+            - name: TZ
+              value: America/Detroit
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyseerr-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyseerr
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: jellyseerr
+    app.kubernetes.io/part-of: media-stack
+spec:
+  selector:
+    app.kubernetes.io/name: jellyseerr
+  ports:
+    - name: http
+      port: 5055
+      targetPort: 5055
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyseerr
+  namespace: media
+  labels:
+    app.kubernetes.io/name: jellyseerr
+    app.kubernetes.io/part-of: media-stack
+    external-dns: enabled
+  annotations:
+    route.openshift.io/termination: edge
+    external-dns.alpha.kubernetes.io/hostname: jellyseerr.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: jellyseerr.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyseerr
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - jellyseerr.garrettholland.com
+      secretName: jellyseerr-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jellyseerr-cert
+  namespace: media
+  labels:
+    app.kubernetes.io/name: jellyseerr
+    app.kubernetes.io/part-of: media-stack
+spec:
+  secretName: jellyseerr-tls
+  dnsNames:
+    - jellyseerr.garrettholland.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt

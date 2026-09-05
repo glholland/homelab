@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sabnzbd
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: sabnzbd
+    app.kubernetes.io/component: downloader
+    app.kubernetes.io/part-of: media-stack
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sabnzbd
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sabnzbd
+        app.kubernetes.io/component: downloader
+        app.kubernetes.io/part-of: media-stack
+    spec:
+      serviceAccountName: media-apps
+      containers:
+        - name: sabnzbd
+          image: lscr.io/linuxserver/sabnzbd:5.0.4
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: America/Detroit
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: incomplete
+              mountPath: /incomplete
+            - name: movies
+              mountPath: /movies
+            - name: tvshows
+              mountPath: /tvshows
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sabnzbd-config
+        - name: incomplete
+          persistentVolumeClaim:
+            claimName: media-incomplete
+        - name: movies
+          persistentVolumeClaim:
+            claimName: media-movies
+        - name: tvshows
+          persistentVolumeClaim:
+            claimName: media-tvshows
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sabnzbd
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: sabnzbd
+    app.kubernetes.io/part-of: media-stack
+spec:
+  selector:
+    app.kubernetes.io/name: sabnzbd
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sabnzbd
+  namespace: media
+  labels:
+    app.kubernetes.io/name: sabnzbd
+    app.kubernetes.io/part-of: media-stack
+    external-dns: enabled
+  annotations:
+    route.openshift.io/termination: edge
+    external-dns.alpha.kubernetes.io/hostname: sabnzbd.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: sabnzbd.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sabnzbd
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - sabnzbd.garrettholland.com
+      secretName: sabnzbd-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sabnzbd-cert
+  namespace: media
+  labels:
+    app.kubernetes.io/name: sabnzbd
+    app.kubernetes.io/part-of: media-stack
+spec:
+  secretName: sabnzbd-tls
+  dnsNames:
+    - sabnzbd.garrettholland.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt

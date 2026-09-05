@@ -1,0 +1,182 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backlog-search-script
+  namespace: media
+  labels:
+    app.kubernetes.io/name: backlog-search
+    app.kubernetes.io/part-of: media-stack
+data:
+  search.sh: |
+    #!/bin/sh
+    set -eu
+    apk add --no-cache curl jq >/dev/null
+
+    RADARR_URL="http://radarr.media.svc:7878"
+    SONARR_URL="http://sonarr.media.svc:8989"
+    BATCH_SIZE=5
+
+    echo "=== Radarr: searching next $BATCH_SIZE missing movies ==="
+    MOVIE_IDS=$(curl -s "$RADARR_URL/api/v3/wanted/missing?pageSize=$BATCH_SIZE&apikey=$RADARR_API_KEY" | jq -c '[.records[].id]')
+    if [ "$MOVIE_IDS" != "[]" ] && [ -n "$MOVIE_IDS" ]; then
+      curl -s -X POST "$RADARR_URL/api/v3/command" \
+        -H "Content-Type: application/json" -H "X-Api-Key: $RADARR_API_KEY" \
+        -d "{\"name\":\"MoviesSearch\",\"movieIds\":$MOVIE_IDS}" >/dev/null
+      echo "triggered search for movie ids: $MOVIE_IDS"
+    else
+      echo "no missing movies"
+    fi
+
+    echo "=== Sonarr: searching next $BATCH_SIZE missing episodes ==="
+    EP_IDS=$(curl -s "$SONARR_URL/api/v3/wanted/missing?pageSize=$BATCH_SIZE&apikey=$SONARR_API_KEY" | jq -c '[.records[].id]')
+    if [ "$EP_IDS" != "[]" ] && [ -n "$EP_IDS" ]; then
+      curl -s -X POST "$SONARR_URL/api/v3/command" \
+        -H "Content-Type: application/json" -H "X-Api-Key: $SONARR_API_KEY" \
+        -d "{\"name\":\"EpisodeSearch\",\"episodeIds\":$EP_IDS}" >/dev/null
+      echo "triggered search for episode ids: $EP_IDS"
+    else
+      echo "no missing episodes"
+    fi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recyclarr-config
+  namespace: media
+  labels:
+    app.kubernetes.io/name: recyclarr
+    app.kubernetes.io/part-of: media-stack
+data:
+  recyclarr.yml: |
+    # NOTE: instance names must be unique ACROSS services — duplicates
+    # are silently discarded (sync exits 0 having done nothing).
+    radarr:
+      radarr-main:
+        base_url: http://radarr.media.svc:7878
+        api_key: !env_var RADARR_API_KEY
+        delete_old_custom_formats: false
+        custom_formats:
+          - trash_ids:
+              - ed38b889b31be83fda192888e2286d83 # BR-DISK
+            assign_scores_to:
+              - name: Any
+                score: -10000
+              - name: HD-1080p
+                score: -10000
+              - name: Ultra-HD
+                score: -10000
+          - trash_ids:
+              - 496f355514737f7d83bf7aa4d24f8169 # TrueHD ATMOS
+            assign_scores_to:
+              - name: Any
+                score: 500
+              - name: HD-1080p
+                score: 500
+              - name: Ultra-HD
+                score: 500
+          - trash_ids:
+              - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+            assign_scores_to:
+              - name: Any
+                score: 450
+              - name: HD-1080p
+                score: 450
+              - name: Ultra-HD
+                score: 450
+          - trash_ids:
+              - 3cafb66171b47f226146a0770576870f # TrueHD
+            assign_scores_to:
+              - name: Any
+                score: 400
+              - name: HD-1080p
+                score: 400
+              - name: Ultra-HD
+                score: 400
+          - trash_ids:
+              - 185f1dd7264c4562b9022d963ac37424 # DD+
+            assign_scores_to:
+              - name: Any
+                score: 300
+              - name: HD-1080p
+                score: 300
+              - name: Ultra-HD
+                score: 300
+          - trash_ids:
+              - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+              - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+            assign_scores_to:
+              - name: Any
+                score: 100
+              - name: HD-1080p
+                score: 100
+              - name: Ultra-HD
+                score: 100
+          - trash_ids:
+              - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+              - e7c2fcae07cbada050a0af3357491d7b # PCM
+              - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+            assign_scores_to:
+              - name: Any
+                score: 50
+              - name: HD-1080p
+                score: 50
+              - name: Ultra-HD
+                score: 50
+    sonarr:
+      sonarr-main:
+        base_url: http://sonarr.media.svc:8989
+        api_key: !env_var SONARR_API_KEY
+        delete_old_custom_formats: false
+        custom_formats:
+          - trash_ids:
+              - 85c61753df5da1fb2aab6f2a47426b09 # BR-DISK
+            assign_scores_to:
+              - name: Any
+                score: -10000
+              - name: HD-1080p
+                score: -10000
+          - trash_ids:
+              - 0d7824bb924701997f874e7ff7d4844a # TrueHD ATMOS
+            assign_scores_to:
+              - name: Any
+                score: 500
+              - name: HD-1080p
+                score: 500
+          - trash_ids:
+              - 4232a509ce60c4e208d13825b7c06264 # DD+ ATMOS
+            assign_scores_to:
+              - name: Any
+                score: 450
+              - name: HD-1080p
+                score: 450
+          - trash_ids:
+              - 1808e4b9cee74e064dfae3f1db99dbfe # TrueHD
+            assign_scores_to:
+              - name: Any
+                score: 400
+              - name: HD-1080p
+                score: 400
+          - trash_ids:
+              - 63487786a8b01b7f20dd2bc90dd4a477 # DD+
+            assign_scores_to:
+              - name: Any
+                score: 300
+              - name: HD-1080p
+                score: 300
+          - trash_ids:
+              - 9d00418ba386a083fbf4d58235fc37ef # DTS X
+              - c429417a57ea8c41d57e6990a8b0033f # DTS-HD MA
+            assign_scores_to:
+              - name: Any
+                score: 100
+              - name: HD-1080p
+                score: 100
+          - trash_ids:
+              - 851bd64e04c9374c51102be3dd9ae4cc # FLAC
+              - 30f70576671ca933adbdcfc736a69718 # PCM
+              - 5964f2a8b3be407d083498e4459d05d0 # DTS
+            assign_scores_to:
+              - name: Any
+                score: 50
+              - name: HD-1080p
+                score: 50

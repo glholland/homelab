@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: radarr
+    app.kubernetes.io/component: pvr
+    app.kubernetes.io/part-of: media-stack
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: radarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: radarr
+        app.kubernetes.io/component: pvr
+        app.kubernetes.io/part-of: media-stack
+    spec:
+      serviceAccountName: media-apps
+      containers:
+        - name: radarr
+          image: lscr.io/linuxserver/radarr:6.2.1
+          ports:
+            - name: http
+              containerPort: 7878
+              protocol: TCP
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: America/Detroit
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: movies
+              mountPath: /movies
+            - name: tvshows
+              mountPath: /tvshows
+            - name: incomplete
+              mountPath: /incomplete
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr-config
+        - name: movies
+          persistentVolumeClaim:
+            claimName: media-movies
+        - name: tvshows
+          persistentVolumeClaim:
+            claimName: media-tvshows
+        - name: incomplete
+          persistentVolumeClaim:
+            claimName: media-incomplete
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+  namespace: media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: radarr
+    app.kubernetes.io/part-of: media-stack
+spec:
+  selector:
+    app.kubernetes.io/name: radarr
+  ports:
+    - name: http
+      port: 7878
+      targetPort: 7878
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radarr
+  namespace: media
+  labels:
+    app.kubernetes.io/name: radarr
+    app.kubernetes.io/part-of: media-stack
+    external-dns: enabled
+  annotations:
+    route.openshift.io/termination: edge
+    external-dns.alpha.kubernetes.io/hostname: radarr.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: radarr.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: radarr
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - radarr.garrettholland.com
+      secretName: radarr-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: radarr-cert
+  namespace: media
+  labels:
+    app.kubernetes.io/name: radarr
+    app.kubernetes.io/part-of: media-stack
+spec:
+  secretName: radarr-tls
+  dnsNames:
+    - radarr.garrettholland.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt

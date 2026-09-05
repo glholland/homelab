@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - pv-media-shared.yaml
+  - pvcs.yaml
+  - secrets.yaml
+  - configmaps.yaml
+  - jellyfin.yaml
+  - jellyseerr.yaml
+  - prowlarr.yaml
+  - radarr.yaml
+  - sabnzbd.yaml
+  - sonarr.yaml
+  - cronjobs.yaml

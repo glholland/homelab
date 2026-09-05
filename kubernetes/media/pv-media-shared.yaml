@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-movies
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: media-stack
+    media.garrettholland.com/type: library
+spec:
+  capacity:
+    storage: 2Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  volumeMode: Filesystem
+  nfs:
+    server: 10.0.0.240
+    path: /mnt/Storage/Movies
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-tvshows
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: media-stack
+    media.garrettholland.com/type: library
+spec:
+  capacity:
+    storage: 2Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  volumeMode: Filesystem
+  nfs:
+    server: 10.0.0.240
+    path: /mnt/Storage/TVShows
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-incomplete
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: media-stack
+    media.garrettholland.com/type: staging
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  volumeMode: Filesystem
+  nfs:
+    server: 10.0.0.240
+    path: /mnt/Storage/incomplete
