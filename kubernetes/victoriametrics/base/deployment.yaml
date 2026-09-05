@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: victoriametrics
+  namespace: victoriametrics
+  labels:
+    app.kubernetes.io/name: victoriametrics
+    app.kubernetes.io/part-of: victoriametrics
+    app.kubernetes.io/component: tsdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: victoriametrics
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: victoriametrics
+        app.kubernetes.io/part-of: victoriametrics
+        app.kubernetes.io/component: tsdb
+    spec:
+      serviceAccountName: victoriametrics
+      containers:
+        - name: victoriametrics
+          image: victoriametrics/victoria-metrics:v1.144.0@sha256:dc030542eb0cd262287c9ec32e5867f8dcccc0efd5906c10f7fc8176c53d34d7
+          args:
+            - -storageDataPath=/victoria-metrics-data
+            - -retentionPeriod=12
+            - -httpListenAddr=:8428
+            - -selfScrapeInterval=10s
+            # Query safety limits — reject before they OOM the pod
+            - -search.maxQueryDuration=30s
+            - -search.maxMemoryPerQuery=256MB
+            - -search.maxUniqueTimeseries=100000
+            - -search.logSlowQueryDuration=5s
+            # Cap memory usage at 80% of the container limit (2Gi)
+            - -memory.allowedPercent=80
+            # Accept InfluxDB line protocol at /write (Telegraf compatibility)
+            # Accept Prometheus remote write at /api/v1/write
+            # Query via MetricsQL/PromQL at /api/v1/query and /api/v1/query_range
+          ports:
+            - name: http
+              containerPort: 8428
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /victoria-metrics-data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: victoriametrics-data

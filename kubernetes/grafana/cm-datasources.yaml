@@ -24,3 +24,26 @@ data:
         secureJsonData:
           token: apiv3_change_me_to_a_random_token
         isDefault: true
+      - name: VictoriaMetrics
+        uid: victoriametrics
+        type: prometheus
+        access: proxy
+        url: http://victoriametrics.victoriametrics.svc:8428
+        editable: true
+        jsonData:
+          timeInterval: 20s
+        isDefault: false
+      - name: OKD Prometheus
+        uid: okd-prometheus
+        type: prometheus
+        access: proxy
+        url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+        editable: true
+        jsonData:
+          tlsSkipVerify: true
+          httpMethod: GET
+          timeInterval: 30s
+          httpHeaderName1: Authorization
+        secureJsonData:
+          httpHeaderValue1: Bearer ${GF_OKD_PROMETHEUS_TOKEN}
+        isDefault: false

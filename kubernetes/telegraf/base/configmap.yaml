@@ -542,3 +542,6 @@ data:
     ###############
     [[outputs.opentelemetry]]
       service_address = "otel-collector.otel-collector.svc.cluster.local:4317"
+    [[outputs.influxdb]]
+      urls = ["http://victoriametrics.victoriametrics.svc:8428"]
+      skip_database_creation = true

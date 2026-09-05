@@ -1,0 +1,37 @@
+# ServiceAccount, ClusterRoleBinding, and long-lived token for Grafana
+# to query OKD cluster-monitoring Prometheus / Thanos Querier.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-monitor
+  namespace: grafana
+  labels:
+    app.kubernetes.io/part-of: grafana
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-monitor-cluster-monitoring-view
+  labels:
+    app.kubernetes.io/part-of: grafana
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+  - kind: ServiceAccount
+    name: grafana-monitor
+    namespace: grafana
+---
+# Long-lived SA token — Kubernetes auto-populates .data.token
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-monitor-token
+  namespace: grafana
+  annotations:
+    kubernetes.io/service-account.name: grafana-monitor
+  labels:
+    app.kubernetes.io/part-of: grafana
+type: kubernetes.io/service-account-token

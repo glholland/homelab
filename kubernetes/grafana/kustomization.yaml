@@ -11,3 +11,7 @@ resources:
   - cm-dashboard-provisioning.yaml
   - cm-dashboard-router.yaml
   - cm-dashboard-unifi-aps.yaml
+  - cm-dashboard-vm-unifi-aps.yaml
+  - cm-dashboard-vm-router.yaml
+  - cm-dashboard-okd.yaml
+  - sa-monitor.yaml

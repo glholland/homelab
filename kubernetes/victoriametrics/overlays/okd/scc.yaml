@@ -1,0 +1,45 @@
+# SCC for VictoriaMetrics on OKD
+# victoria-metrics image runs as nobody (UID 65534) — needs runAsUser: RunAsAny
+# to avoid conflict with OKD's namespace UID range enforcement.
+# No host access, no privileged, read-only root filesystem compatible.
+---
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: victoriametrics
+  annotations:
+    kubernetes.io/description: >-
+      SCC for VictoriaMetrics. Allows the image to run as UID 65534 (nobody)
+      without conflicting with OKD namespace UID range enforcement.
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups: []
+priority: 10
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+seccompProfiles:
+  - runtime/default
+supplementalGroups:
+  type: RunAsAny
+users:
+  - system:serviceaccount:victoriametrics:victoriametrics
+volumes:
+  - configMap
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
