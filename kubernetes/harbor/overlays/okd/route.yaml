@@ -3,7 +3,11 @@ kind: Route
 metadata:
   name: harbor
   namespace: harbor
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: quay.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: harbor.lab.garrettholland.com
   labels:
+    external-dns: enabled
     type: lab
 spec:
   host: harbor.lab.garrettholland.com

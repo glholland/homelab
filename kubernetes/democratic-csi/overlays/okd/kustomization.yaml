@@ -11,8 +11,18 @@ patches:
     target:
       kind: Secret
       name: democratic-csi-driver-config
+  - patch: |
+      - op: add
+        path: /spec/template/spec/tolerations
+        value:
+          - key: nvidia.com/gpu
+            operator: Exists
+            effect: NoSchedule
+    target:
+      kind: DaemonSet
+      name: democratic-csi-node
 
 images:
   - name: docker.io/democraticcsi/democratic-csi
-    newName: docker.io/skaterdurf/democratic-csi
+    newName: harbor.lab.garrettholland.com/lab/democratic-csi
     newTag: latest
