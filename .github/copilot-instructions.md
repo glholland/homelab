@@ -2,10 +2,10 @@
 
 ## Project Context
 
-This is a homelab infrastructure repository managing Kubernetes (K3s, OKD), Proxmox, and Cloud resources.
+This is a homelab infrastructure repository managing Kubernetes (OKD), Proxmox, and Cloud resources.
 
 - **OS**: Fedora Linux (primary workstation).
-- **Orchestration**: Kubernetes (Standard & OKD/OpenShift).
+- **Orchestration**: Kubernetes (OKD/OpenShift).
 - **Automation**: Ansible, Terraform, Kustomize.
 
 ## Directory Structure & Architecture
@@ -16,7 +16,6 @@ This is a homelab infrastructure repository managing Kubernetes (K3s, OKD), Prox
 - **`proxmox/`**: Infrastructure as Code for Proxmox VE.
 - **`cloud/`**: Cloud provider configurations.
 - **`dns/`**: DNS configurations. See `dns/pihole_install.md`.
-- **`k3s/`**: K3s specific configurations. See `k3s/runbook.md` for VM provisioning.
 
 ## Critical Workflows & Patterns
 
