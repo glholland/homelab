@@ -1,0 +1,20 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 99-worker-ssh
+spec:
+  baseOSExtensionsContainerImage: ""
+  config:
+    ignition:
+      version: 3.2.0
+    passwd:
+      users:
+        - name: core
+          sshAuthorizedKeys:
+            - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDPge34BkjkmtSS1LyziaBLB7xsm5/Po9ScouBZFUJkTxwx2Eeh4viP7kWugIioH9z3L15gU6MJ2DDMxqZ2+5nJO1eD5kgzIOpS9h2Rn1IqB12y9LPI1y5UKYHoHLdv3NJNuSJiIBnc0Z5Hs6WAwtp6qZvWfJH/s7SszBrMP+m9VAw/gUv/LX6Wo7veD+MzK8VkQLcHyQ/NG2mSmhGC4lDlLUdHTFrkyOKU7AwtKhU7zl3RBuPtUIoFXcInU8tGPoyr2hQ11nVYoDKlqVA7xp46DUx5h7Wr1LMvaxUzvfqah6878SbmpD8bZA9jqHyH5RfhVPlA9Gl/itMScTvcyKFfzG1++1/SFjP5fEfgOtNl8e4ykNFnRZBKtZTzdwZ+70QIZSKFm12kKA0dOUaRJ+tYdrT9DvR79MsVSNeR1OaCPwlnBdag+gXKmbxRiJ408ujqmlotNAKh3BQEkjSg1UdBv+SiNtaOwo65JE29OEdyH2+sbLcKCj+m7pE39RyptHI2z628HcKZrtcrRj0Q0CJ1eweh51puls2LkNAqEnv2rGBv58spn5I5K0iSSNazS7nFJEKsK+Xb9GTL1Wz6vWkittadNmxvj6vAIKnkNILH/ySUN0YXnMEr67qF0TjDQBlix8WQyHsJ3KtATX55IBHCzb/Mxvx8AMKJsbfH/lQGmQ== garrett@fedora
+  fips: false
+  kernelArguments: null
+  kernelType: ""
+  osImageURL: ""

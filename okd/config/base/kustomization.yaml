@@ -4,3 +4,4 @@ resources:
   - ./api-certificate.yaml
   - ./api-server.yaml
   - ./ingress-certificate.yaml
+  - ./oauth.yaml
