@@ -4,3 +4,4 @@ resources:
 - cluster-scope/
 - openshift-ingress-operator/
 - openshift-ingress/
+- openshift-marketplace/
