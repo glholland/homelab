@@ -25,4 +25,4 @@ patches:
 images:
   - name: docker.io/democraticcsi/democratic-csi
     newName: harbor.lab.garrettholland.com/lab/democratic-csi
-    newTag: latest
+    newTag: v1.9.5
