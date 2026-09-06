@@ -152,3 +152,43 @@ resource "google_secret_manager_secret" "open_webui_secret_key" {
     auto {}
   }
 }
+
+resource "google_secret_manager_secret" "zitadel_db_password" {
+  secret_id = "zitadel-db-password"
+  labels = {
+    label = "zitadel"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "zitadel_db_superuser_password" {
+  secret_id = "zitadel-db-superuser-password"
+  labels = {
+    label = "zitadel"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "zitadel_masterkey" {
+  secret_id = "zitadel-masterkey"
+  labels = {
+    label = "zitadel"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "google_oauth_client_id" {
+  secret_id = "google-oauth-client-id"
+  labels = {
+    label = "oidc"
+  }
+  replication {
+    auto {}
+  }
+}
