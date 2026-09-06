@@ -1,0 +1,15 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 99-assisted-installer-master-ssh
+spec:
+  config:
+    ignition:
+      version: 3.1.0
+    passwd:
+      users:
+        - name: core
+          sshAuthorizedKeys:
+            - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKDZBU8hSqmbF5aVZA6OvIgeYmHZkohkVlThxOI+vijJ root@master-1

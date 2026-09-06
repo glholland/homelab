@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: okd-ingress-cert
+  namespace: openshift-ingress
+spec:
+  dnsNames:
+    - '*.apps.okd.garrettholland.com'
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  secretName: okd-ingress-cert-tls

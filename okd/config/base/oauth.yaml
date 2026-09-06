@@ -1,0 +1,24 @@
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+    - name: google
+      mappingMethod: claim
+      type: OpenID
+      openID:
+        clientID: <path:projects/812524172865/secrets/google-oauth-client-id#google-oauth-client-id>
+        clientSecret:
+          name: google-client-secret
+        extraScopes: []
+        issuer: https://accounts.google.com
+        claims:
+          id:
+            - sub
+          preferredUsername:
+            - email
+          name:
+            - name
+          email:
+            - email
