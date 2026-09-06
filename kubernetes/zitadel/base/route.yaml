@@ -10,6 +10,7 @@ metadata:
     route.openshift.io/termination: reencrypt
     route.openshift.io/destination-ca-certificate-secret: ca-bundle
     external-dns.alpha.kubernetes.io/hostname: zitadel.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: "10.0.0.253"
 spec:
   ingressClassName: openshift-default
   rules:
