@@ -1,0 +1,8 @@
+kind: Kustomization
+namespace: external-dns
+resources:
+  - namespace.yaml
+  - service-account.yaml
+  - rbac.yaml
+  - deployment.yaml
+  - secret.yaml

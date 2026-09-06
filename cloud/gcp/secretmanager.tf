@@ -183,6 +183,16 @@ resource "google_secret_manager_secret" "zitadel_masterkey" {
   }
 }
 
+resource "google_secret_manager_secret" "external_dns_pihole_password" {
+  secret_id = "external-dns-pihole-password"
+  labels = {
+    label = "external-dns"
+  }
+  replication {
+    auto {}
+  }
+}
+
 resource "google_secret_manager_secret" "google_oauth_client_id" {
   secret_id = "google-oauth-client-id"
   labels = {

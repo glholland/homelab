@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: external-dns
+          image: registry.k8s.io/external-dns/external-dns:v0.20.0
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          envFrom:
+            - secretRef:
+                # Change this if you gave the secret a different name
+                name: pihole-password
+          args:
+            - --source=service
+            - --source=ingress
+            - --source=openshift-route
+            # Only publish records for explicitly opted-in resources.
+            - --label-filter=external-dns=enabled
+            - --registry=noop
+            # IMPORTANT: If you have records that you manage manually in Pi-hole, set
+            # the policy to upsert-only so they do not get deleted.
+            - --policy=upsert-only
+            - --provider=pihole
+            # Switch to pihole V6 API
+            - --pihole-api-version=6
+            # Use the default OKD router's admitted route status as the DNS target.
+            - --openshift-router-name=default
+            # Pi-hole runs outside the cluster on a separate VM.
+            - --pihole-server=http://pihole.garrettholland.com
+            - --pihole-tls-skip-verify
