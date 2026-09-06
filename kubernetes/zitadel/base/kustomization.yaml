@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./deployment.yaml
+  - ./pdb.yaml
+  - ./rbac.yaml
+  - ./route.yaml
+  - ./service-monitor.yaml
+  - ./setup-job.yaml
+  - ./configmap.yaml
+  - ./init-job.yaml
+  - ./namespace.yaml
+  - ./resource-quota.yaml
+  - ./limitrange.yaml
+  - ./secret.yaml
+  - ./postgres-secret.yaml
+  - ./service.yaml
+  - ./certificate.yaml
+  - ./ca-bundle.yaml

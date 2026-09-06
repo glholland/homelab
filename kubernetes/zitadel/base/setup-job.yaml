@@ -1,0 +1,96 @@
+# Source: zitadel/templates/setupjob.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "zitadel-setup"
+  namespace: zitadel
+  labels:
+    helm.sh/chart: zitadel-6.2.0
+    app.kubernetes.io/name: zitadel
+    app.kubernetes.io/instance: zitadel
+    app.kubernetes.io/version: "v2.43.5"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: setup
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    checkov.io/skip1: CKV_K8S_40=OpenShift Injects Random UID
+    checkov.io/skip2: CKV_K8S_35=App Doesn't Support
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: zitadel
+        app.kubernetes.io/instance: zitadel
+        app.kubernetes.io/component: setup
+    spec:
+      serviceAccountName: zitadel
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      enableServiceLinks: false
+      automountServiceAccountToken: false
+      restartPolicy: OnFailure
+      containers:
+        - name: "zitadel-setup"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+          image: "ghcr.io/zitadel/zitadel:v2.56.0@sha256:ceb5c0ad89720ca8d562d1ae86e75c37c33a8b621d98e39a1d86262cae013461"
+          imagePullPolicy: IfNotPresent
+          args:
+            - setup
+            - --config
+            - /config/zitadel-config-yaml
+            - --config
+            - /.secrets/zitadel-secrets-yaml/zitadel-secrets-yaml
+            - --steps
+            - /config/zitadel-config-yaml
+            - --masterkeyFromEnv
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: ZITADEL_MASTERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-masterkey
+                  key: masterkey
+            - name: ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH
+              value: "/machinekey/sa.json"
+          volumeMounts:
+            - name: zitadel-config-yaml
+              mountPath: /config
+            - name: zitadel-secrets-yaml
+              mountPath: /.secrets/zitadel-secrets-yaml
+            - name: certificate
+              mountPath: /ssl
+          resources:
+            limits:
+              cpu: 75m
+              memory: 256Mi
+            requests:
+              cpu: 25m
+              memory: 128Mi
+      volumes:
+        - name: zitadel-config-yaml
+          configMap:
+            name: zitadel-config-yaml
+        - name: zitadel-secrets-yaml
+          secret:
+            secretName: zitadel-secrets-yaml
+        - name: certificate
+          secret:
+            secretName: zitadel-cert
