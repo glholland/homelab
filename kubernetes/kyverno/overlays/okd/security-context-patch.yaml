@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyverno-admission-controller
+  namespace: kyverno
+spec:
+  template:
+    spec:
+      containers:
+        - name: kyverno
+          securityContext:
+            runAsUser: null
+            runAsGroup: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyverno-background-controller
+  namespace: kyverno
+spec:
+  template:
+    spec:
+      containers:
+        - name: controller
+          securityContext:
+            runAsUser: null
+            runAsGroup: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyverno-cleanup-controller
+  namespace: kyverno
+spec:
+  template:
+    spec:
+      containers:
+        - name: controller
+          securityContext:
+            runAsUser: null
+            runAsGroup: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyverno-reports-controller
+  namespace: kyverno
+spec:
+  template:
+    spec:
+      containers:
+        - name: controller
+          securityContext:
+            runAsUser: null
+            runAsGroup: null

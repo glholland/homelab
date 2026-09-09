@@ -1,0 +1,60 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: fix-pac-watcher-webhook-binary
+  annotations:
+    policies.kyverno.io/title: Fix Pipelines-as-Code watcher/webhook binary
+    policies.kyverno.io/description: >-
+      The okderators okd-pipelines-operator (v1.7.0-2025-02-11-151011) ships
+      one shared image for the PAC controller, watcher, and webhook
+      Deployments but never overrides the container command for watcher or
+      webhook - both silently fall through to the image's default entrypoint
+      (the controller binary), so watcher never patches PipelineRun
+      completions back to GitHub and webhook never runs PAC's admission
+      logic. Confirmed via /proc/1/cmdline on all three pods and the
+      operator's own TektonInstallerSet source, which lacks the override too.
+      This forces the correct command on every create/update of those two
+      Deployments, since the operator continuously reconciles them back to
+      its buggy default and would otherwise revert a one-time patch.
+spec:
+  background: false
+  failurePolicy: Ignore
+  rules:
+    - name: fix-watcher-command
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+              names:
+                - pipelines-as-code-watcher
+              namespaces:
+                - openshift-pipelines
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: pac-watcher
+                    command:
+                      - /ko-app/pipelines-as-code-watcher
+    - name: fix-webhook-command
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+              names:
+                - pipelines-as-code-webhook
+              namespaces:
+                - openshift-pipelines
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: pac-webhook
+                    command:
+                      - /ko-app/pipelines-as-code-webhook
