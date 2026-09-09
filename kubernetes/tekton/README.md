@@ -62,6 +62,7 @@ Notes:
 - Reporting is via PR comments / commit statuses, not the Checks tab -- that API isn't available to webhook+PAT-based PAC.
 - `build-and-push.yaml` hardcodes `image-name: steam-cmd` -- fix before a second image lands under `images/`.
 - `build-and-push` stops at "image pushed" and never applies cluster manifests, so it won't need rework once ArgoCD exists.
+- `git-clone`/`buildah` are fetched via Tekton's native `resolver: hub` (pinned to versions 0.10.0 / 0.9.0), **not** the `pipelinesascode.tekton.dev/task` annotation. That annotation resolves through PAC's own `hub-url` setting, which on this operator version still defaults to the decommissioned `api.hub.tekton.dev` and silently fails at runtime. The native hub-resolver's own config (`hubresolver-config` in `openshift-pipelines`) already points at Artifact Hub correctly, which is why it's used instead. Verified with a throwaway `TaskRun` before relying on it.
 
 ## Testing
 
