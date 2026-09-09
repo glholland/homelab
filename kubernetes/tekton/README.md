@@ -17,21 +17,15 @@ tekton/
 
 ## Install
 
-Before applying, verify the Subscription's `channel` against the live cluster -- the `okderators` catalog's channel names aren't guaranteed to match upstream OpenShift Pipelines:
-
-```bash
-oc get packagemanifest okd-pipelines-operator -n openshift-marketplace -o yaml
-```
-
-Then:
-
 ```bash
 oc apply -k kubernetes/tekton/overlays/okd
 ```
 
+The Subscription is pinned to `channel: alpha` / `startingCSV: okd-pipelines-operator.v1.7.0-2025-02-11-151011` -- confirmed against the live `okderators` PackageManifest, which only publishes that one channel. Re-check with `oc get packagemanifest okd-pipelines-operator -n openshift-marketplace -o yaml` if the catalog image gets bumped later.
+
 ## OKD Specifics
 
-- `okd-pipelines-operator` is subscribed into `openshift-operators` (cluster-scoped, `AllNamespaces` install mode), reusing OLM's default global `OperatorGroup` -- no `OperatorGroup` manifest needed here, unlike the namespace-scoped cert-manager/rook-ceph installs elsewhere in this repo. If the live PackageManifest turns out to only support `OwnNamespace`/`SingleNamespace`, this needs reworking into a dedicated namespace + explicit `OperatorGroup` instead.
+- `okd-pipelines-operator` is subscribed into `openshift-operators` (cluster-scoped) rather than a dedicated namespace, reusing OLM's default global `OperatorGroup` -- no `OperatorGroup` manifest here, unlike the namespace-scoped cert-manager/rook-ceph installs elsewhere in this repo. Confirmed live: `AllNamespaces` is the only install mode this package supports.
 - The `TektonConfig` reconciler auto-provisions a `pipeline` ServiceAccount with an appropriate SCC binding in every namespace it manages -- this repo does not grant any SCC manually for Tekton. Confirm after first deploy with `oc get sa pipeline -n tekton-ci` / `oc get rolebinding -n tekton-ci` before assuming otherwise.
 - With `pipelinesAsCode.enable: true`, OpenShift Pipelines auto-creates a Route for the PAC controller in `openshift-pipelines`. Confirm it exists (`oc get route -n openshift-pipelines`) rather than hand-authoring one.
 
