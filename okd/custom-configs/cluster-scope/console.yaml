@@ -20,7 +20,7 @@ spec:
     perspectives:
       - id: dev
         visibility:
-          state: Disabled
+          state: Enabled
     projectAccess: {}
     quickStarts: {}
   ingress:
