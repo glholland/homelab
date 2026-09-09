@@ -4,5 +4,6 @@ resources:
   - namespace.yaml
   - serviceaccount.yaml
   - git-provider-secret.yaml
+  - github-app-secret.yaml
   - harbor-push-secret.yaml
   - repository.yaml

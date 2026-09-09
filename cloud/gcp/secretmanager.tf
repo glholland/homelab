@@ -243,6 +243,44 @@ resource "google_secret_manager_secret" "harbor_ci_robot_password" {
   }
 }
 
+## Pipelines-as-Code GitHub App
+#
+# Replaces the webhook+PAT provider so PAC can use the Checks API
+# (GitHub only allows Check Runs to be created by a GitHub App, not a
+# personal access token). This is controller-wide, not per-Repository --
+# consumed via the fixed `pipelines-as-code-secret` name the PAC
+# controller expects (PAC_CONTROLLER_SECRET env var).
+
+resource "google_secret_manager_secret" "github_pac_app_id" {
+  secret_id = "github-pac-app-id"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "github_pac_app_private_key" {
+  secret_id = "github-pac-app-private-key"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "github_pac_app_webhook_secret" {
+  secret_id = "github-pac-app-webhook-secret"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
 resource "google_secret_manager_secret" "google_oauth_client_id" {
   secret_id = "google-oauth-client-id"
   labels = {

@@ -51,6 +51,13 @@ Subscription is pinned to `channel: alpha` / `startingCSV: okd-pipelines-operato
    ```
    Add a CNAME for `pac.garrettholland.com` to `<tunnel-id>.cfargotunnel.com` in the `garrettholland.com` zone.
 4. Register the webhook (`https://pac.garrettholland.com` + the secret from step 1) on the repo's Settings > Webhooks.
+5. **GitHub App** (for real GitHub Checks instead of a flat commit status -- see [Web Console](#web-console) note above on why the plugin UI can't show these anyway, this is separate): register an App at github.com/settings/apps/new, permissions Checks (read/write), Contents (read), Issues (read/write), Metadata (read), Pull requests (read/write); subscribe to Check run, Check suite, Issue comment, Pull request, Push; webhook URL `https://pac.garrettholland.com`; generate a private key; install on `glholland/homelab` only.
+   ```bash
+   gcloud secrets versions add github-pac-app-id --data-file=- <<< "<app id>"
+   gcloud secrets versions add github-pac-app-private-key --data-file=<path-to-downloaded-private-key.pem>
+   gcloud secrets versions add github-pac-app-webhook-secret --data-file=- <<< "<app webhook secret>"
+   ```
+   This lands in `pipelines-as-code-secret` in `openshift-pipelines` -- the fixed name/namespace the PAC controller expects (`PAC_CONTROLLER_SECRET` env var), so it's controller-wide rather than per-`Repository`. Once the App install is confirmed working, `git-provider-secret.yaml` and the `git_provider` block in `repository.yaml` can be dropped, along with the `github-pac-token`/`github-pac-webhook-secret` GSM secrets -- left in place for now so the existing webhook+PAT path keeps working until the App is verified.
 
 ## Pipelines
 
