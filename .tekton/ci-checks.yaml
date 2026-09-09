@@ -65,7 +65,7 @@ spec:
               script: |
                 #!/bin/sh
                 set -eu
-                yamllint -d relaxed kubernetes okd
+                yamllint -d relaxed --no-warnings kubernetes okd
   workspaces:
     - name: source
       volumeClaimTemplate:
