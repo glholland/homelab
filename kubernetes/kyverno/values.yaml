@@ -1,0 +1,13 @@
+# Homelab is a single small cluster - trim each controller to 1 replica
+# instead of the chart's HA-oriented defaults.
+admissionController:
+  replicas: 1
+
+backgroundController:
+  replicas: 1
+
+cleanupController:
+  replicas: 1
+
+reportsController:
+  replicas: 1
