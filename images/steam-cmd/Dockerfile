@@ -45,3 +45,5 @@ USER 1001
 
 # Keep container running
 CMD ["tail", "-f", "/dev/null"]
+
+# noop: touches images/** to exercise the build-test PR pipeline

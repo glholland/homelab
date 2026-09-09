@@ -3,6 +3,8 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - serviceaccount.yaml
+  - build-test-serviceaccount.yaml
+  - buildah-privileged-rolebinding.yaml
   - github-app-secret.yaml
   - harbor-push-secret.yaml
   - repository.yaml

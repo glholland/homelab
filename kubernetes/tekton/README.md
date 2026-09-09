@@ -29,7 +29,8 @@ Subscription is pinned to `channel: alpha` / `startingCSV: okd-pipelines-operato
 ## OKD Specifics
 
 - Subscribed into `openshift-operators` (cluster-scoped, `AllNamespaces`-only) -- no `OperatorGroup` needed here.
-- `TektonConfig` auto-provisions a `pipeline` ServiceAccount + SCC binding per namespace. No manual SCC in this repo. Verify: `oc get sa pipeline -n tekton-ci`.
+- `TektonConfig` auto-provisions a `pipeline` ServiceAccount + SCC binding per namespace. Verify: `oc get sa pipeline -n tekton-ci`.
+- The `buildah` catalog task (0.9.0) hardcodes `securityContext.privileged: true` in its step -- not configurable via a param. `buildah-privileged-rolebinding.yaml` grants `system:openshift:scc:privileged` to the `harbor-push` and `build-test` ServiceAccounts specifically (not the shared default `pipeline` SA, which `ci-checks` also uses and shouldn't need this). Found this by actually running `build-test` for the first time -- `build-and-push` had the identical gap and had never been triggered end-to-end before.
 
 ## Public Reachability: Cloudflare Tunnel
 
@@ -61,13 +62,15 @@ PAC originally ran on a webhook+PAT provider (a manually-registered repo webhook
 
 `PipelineRun` definitions live at [`.tekton/`](../../.tekton/) (repo root), not here:
 - `build-and-push.yaml` -- Harbor image builds on push to `main`, scoped to `images/**`.
+- `build-test.yaml` -- same build, `SKIP_PUSH: "true"`, triggered on PRs touching `images/**` instead of push to `main`. Validates the image actually builds before merge, using a dedicated `build-test` ServiceAccount (needs the same privileged SCC as `harbor-push` for buildah, but has no Harbor secret attached) rather than `harbor-push` itself -- a PR-triggered run has no path to Harbor credentials even if something else were misconfigured.
 - `ci-checks.yaml` -- `kustomize build` + `yamllint` on PRs, scoped to files actually changed vs the target branch (diffed in a dedicated `changed-files` task) rather than the whole `kubernetes`/`okd` tree, so pre-existing debt elsewhere doesn't block unrelated PRs.
 
 Notes:
 - Reporting is via real GitHub Checks (the Checks tab, with log-snippet annotations on failure) now that PAC runs as a GitHub App -- see Manual Steps above.
-- `build-and-push.yaml` hardcodes `image-name: steam-cmd` -- fix before a second image lands under `images/`.
+- `build-and-push.yaml`/`build-test.yaml` hardcode `image-name: steam-cmd` -- fix before a second image lands under `images/`.
 - `build-and-push` stops at "image pushed" and never applies cluster manifests, so it won't need rework once ArgoCD exists.
 - `git-clone`/`buildah` are fetched via Tekton's native `resolver: hub` (pinned to versions 0.10.0 / 0.9.0), **not** the `pipelinesascode.tekton.dev/task` annotation. That annotation resolves through PAC's own `hub-url` setting, which on this operator version still defaults to the decommissioned `api.hub.tekton.dev` and silently fails at runtime. The native hub-resolver's own config (`hubresolver-config` in `openshift-pipelines`) already points at Artifact Hub correctly, which is why it's used instead. Verified with a throwaway `TaskRun` before relying on it.
+- This repo is public, so anyone can open a PR against it, and PAC reads `.tekton/*.yaml` from the incoming PR's own branch by default -- but no explicit config is needed to stop a stranger's PR from running: PAC's default `aclCheckAll` already allows a run only if the sender owns the repo (`rev.Organization == rev.Sender`, true for `glholland` on this personal repo), is a collaborator, or is listed in an `OWNERS` file, and otherwise requires an explicit `/ok-to-test` comment from someone who does. **Do not set `Repository.spec.settings.policy`** -- its `pull_request`/`ok_to_test` fields only work for Organization-owned repos with real GitHub Teams; on a personal account the team lookup 404s, PAC treats that as an explicit deny, and that short-circuits *before* the owner-check ever runs -- it blocked `glholland`'s own PRs the one time this was tried. `build-and-push.yaml`/`build-test.yaml` both use `{{ revision }}` for `fetch-source` since there's no untrusted-revision risk to defend against once the default ACL already gates who can trigger a run at all.
 
 ## Web Console
 
