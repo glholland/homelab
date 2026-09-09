@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: tekton-ci
+data:
+  config.yaml: |
+    ingress:
+      - hostname: pac.garrettholland.com
+        service: http://pipelines-as-code-controller.openshift-pipelines.svc.cluster.local:8080
+      - service: http_status:404

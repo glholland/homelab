@@ -9,7 +9,8 @@ tekton/
 ├── base/
 │   └── subscription.yaml          # OLM Subscription, cluster-scoped (openshift-operators)
 ├── components/
-│   └── pipelines-as-code/         # tekton-ci namespace, PAC Repository CR, secrets, harbor-push SA
+│   ├── pipelines-as-code/         # tekton-ci namespace, PAC Repository CR, secrets, harbor-push SA
+│   └── cloudflare-tunnel/         # cloudflared Deployment exposing the PAC controller publicly
 └── overlays/
     └── okd/
         └── tekton-config.yaml     # TektonConfig singleton, profile: all
@@ -27,7 +28,10 @@ The Subscription is pinned to `channel: alpha` / `startingCSV: okd-pipelines-ope
 
 - `okd-pipelines-operator` is subscribed into `openshift-operators` (cluster-scoped) rather than a dedicated namespace, reusing OLM's default global `OperatorGroup` -- no `OperatorGroup` manifest here, unlike the namespace-scoped cert-manager/rook-ceph installs elsewhere in this repo. Confirmed live: `AllNamespaces` is the only install mode this package supports.
 - The `TektonConfig` reconciler auto-provisions a `pipeline` ServiceAccount with an appropriate SCC binding in every namespace it manages -- this repo does not grant any SCC manually for Tekton. Confirm after first deploy with `oc get sa pipeline -n tekton-ci` / `oc get rolebinding -n tekton-ci` before assuming otherwise.
-- With `pipelinesAsCode.enable: true`, OpenShift Pipelines auto-creates a Route for the PAC controller in `openshift-pipelines`. Confirm it exists (`oc get route -n openshift-pipelines`) rather than hand-authoring one.
+
+## Public Reachability: Cloudflare Tunnel, not a Route
+
+GitHub needs to reach the PAC controller over the public internet. Nothing else in this repo is exposed publicly (external-dns only publishes into internal Pi-hole DNS), and rather than port-forwarding the Ubiquiti router to the OKD ingress, `components/cloudflare-tunnel/` runs `cloudflared` in-cluster with an outbound-only connection to Cloudflare's edge -- no inbound port ever opens on the home network. It talks directly to the `pipelines-as-code-controller` Service in `openshift-pipelines` over cluster-internal DNS (see `configmap.yaml`), so this doesn't depend on or use the Route that OpenShift Pipelines otherwise auto-creates for that controller.
 
 ## Manual Steps
 
@@ -43,10 +47,12 @@ None of this is expressible as a manifest -- do these by hand:
    gcloud secrets versions add harbor-ci-robot-username --data-file=- <<< "<robot username>"
    gcloud secrets versions add harbor-ci-robot-password --data-file=- <<< "<robot token>"
    ```
-3. **Public reachability**: GitHub needs to reach the PAC controller's Route. Nothing else in this repo is exposed publicly (external-dns only publishes into internal Pi-hole DNS) -- this needs, outside Kustomize entirely:
-   - A public DNS record for the PAC controller's hostname, added in Cloudflare (the `garrettholland.com` zone already lives there, see `kubernetes/certman/components/cloudflare/`).
-   - A port-forward on the Ubiquiti router from a public IP:443 to the OKD default IngressController's VIP.
-   - Register the webhook (URL + the secret from step 1) on the `glholland/homelab` GitHub repo's Settings > Webhooks.
+3. **Cloudflare Tunnel**: in the Cloudflare Zero Trust dashboard (Networks > Tunnels > Create a tunnel > Cloudflared), create a tunnel and copy its token -- this is a "remotely-managed" tunnel for auth purposes only; the actual ingress routing rule lives in `configmap.yaml`, not the dashboard. Populate:
+   ```bash
+   gcloud secrets versions add cloudflared-pac-tunnel-token --data-file=- <<< "<tunnel token>"
+   ```
+   Then add a DNS record for `pac.garrettholland.com` (or whatever hostname `configmap.yaml` uses) as a CNAME to `<tunnel-id>.cfargotunnel.com` in the Cloudflare dashboard for the `garrettholland.com` zone.
+4. Register the webhook (`https://pac.garrettholland.com`, plus the secret from step 1) on the `glholland/homelab` GitHub repo's Settings > Webhooks.
 
 ## Pipelines
 

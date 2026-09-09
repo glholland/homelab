@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - ../../base
   - ../../components/pipelines-as-code
+  - ../../components/cloudflare-tunnel
   - ./tekton-config.yaml

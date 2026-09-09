@@ -213,6 +213,16 @@ resource "google_secret_manager_secret" "github_pac_webhook_secret" {
   }
 }
 
+resource "google_secret_manager_secret" "cloudflared_pac_tunnel_token" {
+  secret_id = "cloudflared-pac-tunnel-token"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
 resource "google_secret_manager_secret" "harbor_ci_robot_username" {
   secret_id = "harbor-ci-robot-username"
   labels = {
