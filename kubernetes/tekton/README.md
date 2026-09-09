@@ -37,7 +37,7 @@ GitHub needs to reach the PAC controller over the public internet. Nothing else 
 
 None of this is expressible as a manifest -- do these by hand:
 
-1. **GitHub PAT + webhook secret**: create a GitHub personal access token (repo scope) for `glholland/homelab`, and pick a webhook secret value. Populate:
+1. **GitHub PAT + webhook secret**: create a fine-grained personal access token scoped to just `glholland/homelab`, with Contents (read-only), Pull requests (read/write), Commit statuses (read/write), and Metadata (read-only, mandatory baseline). Pick a webhook secret value too. Populate:
    ```bash
    gcloud secrets versions add github-pac-token --data-file=- <<< "<token>"
    gcloud secrets versions add github-pac-webhook-secret --data-file=- <<< "<secret>"
@@ -60,6 +60,8 @@ Actual `PipelineRun` definitions live at the repo root under [`.tekton/`](../../
 - `build-and-push.yaml` -- builds and pushes images under `images/**` to Harbor on push to `main`.
 - `ci-checks.yaml` -- runs `kustomize build` + `yamllint` against `kubernetes/` and `okd/` on every PR.
 
+**Reporting is via PR comments, not the Checks tab**: webhook+PAT-based Pipelines-as-Code (as opposed to a GitHub App) doesn't get access to the GitHub Check Runs API -- results post as a comment on the PR instead. `build-and-push` (push-triggered, no PR to comment on) reports via commit status instead, which is why the PAT needs Commit statuses write access.
+
 **Known gap**: `build-and-push.yaml` hardcodes `image-name: steam-cmd` since Tekton has no built-in "which subdirectory under `images/` changed" param. Fix before adding a second image under `images/` -- either a small script step parsing PAC's `{{ files_changed_added_or_modified }}`, or split into one PipelineRun per image.
 
 **ArgoCD boundary**: `build-and-push` stops at "image pushed to Harbor" and never runs `oc apply`/`kubectl apply` against cluster manifests. ArgoCD isn't deployed yet; keeping this pipeline's blast radius to build-and-push only (no cluster-apply RBAC on `harbor-push`) means it doesn't need reworking once ArgoCD exists and takes over as the thing that actually applies manifests.
@@ -76,5 +78,5 @@ oc get tektonconfig config -o jsonpath='{.status.conditions}'
 # After the webhook is live: push a trivial commit touching images/steam-cmd/Dockerfile
 tkn pipelinerun list -n tekton-ci
 
-# Open a throwaway PR against this repo and confirm ci-checks reports a GitHub Check
+# Open a throwaway PR against this repo and confirm ci-checks posts a result comment on it
 ```
