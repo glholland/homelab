@@ -24,6 +24,8 @@ oc apply -k kubernetes/tekton/overlays/okd
 
 Subscription is pinned to `channel: alpha` / `startingCSV: okd-pipelines-operator.v1.7.0-2025-02-11-151011`. Re-check with `oc get packagemanifest okd-pipelines-operator -n openshift-marketplace -o yaml` if the catalog image gets bumped.
 
+`installPlanApproval: Manual` -- `base/installplan-approver-job.yaml` auto-approves the resulting `InstallPlan` on apply instead of needing a manual `kubectl patch installplan`, using the shared `installplan-approver` ServiceAccount/ClusterRole from `okd/config/base`. For a future version bump, delete the completed Job first (`kubectl delete job approve-okd-pipelines-operator-installplan -n openshift-operators`) then reapply -- Jobs are immutable once created.
+
 ## OKD Specifics
 
 - Subscribed into `openshift-operators` (cluster-scoped, `AllNamespaces`-only) -- no `OperatorGroup` needed here.

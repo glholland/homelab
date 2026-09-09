@@ -4,4 +4,7 @@ resources:
   - ./api-certificate.yaml
   - ./api-server.yaml
   - ./ingress-certificate.yaml
+  - ./installplan-approver-cr.yaml
+  - ./installplan-approver-crb.yaml
+  - ./installplan-approver-sa.yaml
   - ./oauth.yaml
