@@ -64,6 +64,12 @@ Notes:
 - `build-and-push` stops at "image pushed" and never applies cluster manifests, so it won't need rework once ArgoCD exists.
 - `git-clone`/`buildah` are fetched via Tekton's native `resolver: hub` (pinned to versions 0.10.0 / 0.9.0), **not** the `pipelinesascode.tekton.dev/task` annotation. That annotation resolves through PAC's own `hub-url` setting, which on this operator version still defaults to the decommissioned `api.hub.tekton.dev` and silently fails at runtime. The native hub-resolver's own config (`hubresolver-config` in `openshift-pipelines`) already points at Artifact Hub correctly, which is why it's used instead. Verified with a throwaway `TaskRun` before relying on it.
 
+## Web Console
+
+`pipelines-console-plugin` is registered in `okd/custom-configs/cluster-scope/console.yaml`, and loads/enables fine, but its list/overview pages (`/pipelines/...`, `/pipelines-overview/...`) crash on mount with `TypeError: (0 , r.useHistory) is not a function`. The plugin bundled in `okd-pipelines-operator.v1.7.0-2025-02-11-151011` was built against React Router v5 (`useHistory`), and this console version now vendors React Router v6, which dropped that hook. The `okderators` catalog only publishes this one CSV -- there's no newer build to upgrade to yet.
+
+Generic Kubernetes resource pages (e.g. a `PipelineRun` details page reached via a PAC comment link) still render fine, since those use the console's own resource-details machinery rather than the plugin's custom list pages. Until `okderators` ships a fixed build, use `tkn`/`oc` for anything list-page-shaped (`tkn pipelinerun list -n tekton-ci`, etc.) instead of the console nav.
+
 ## Testing
 
 ```bash
