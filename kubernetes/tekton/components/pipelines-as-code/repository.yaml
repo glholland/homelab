@@ -1,0 +1,7 @@
+apiVersion: pipelinesascode.tekton.dev/v1alpha1
+kind: Repository
+metadata:
+  name: homelab
+  namespace: tekton-ci
+spec:
+  url: "https://github.com/glholland/homelab"

@@ -1,0 +1,11 @@
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonConfig
+metadata:
+  name: config
+spec:
+  profile: all
+  targetNamespace: openshift-pipelines
+  platforms:
+    openshift:
+      pipelinesAsCode:
+        enable: true

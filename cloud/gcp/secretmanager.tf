@@ -195,6 +195,94 @@ resource "google_secret_manager_secret" "external_dns_pihole_password" {
   }
 }
 
+resource "google_secret_manager_secret" "github_pac_token" {
+  secret_id = "github-pac-token"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "github_pac_webhook_secret" {
+  secret_id = "github-pac-webhook-secret"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "cloudflared_pac_tunnel_token" {
+  secret_id = "cloudflared-pac-tunnel-token"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "harbor_ci_robot_username" {
+  secret_id = "harbor-ci-robot-username"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "harbor_ci_robot_password" {
+  secret_id = "harbor-ci-robot-password"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+## Pipelines-as-Code GitHub App
+#
+# Replaces the webhook+PAT provider so PAC can use the Checks API
+# (GitHub only allows Check Runs to be created by a GitHub App, not a
+# personal access token). This is controller-wide, not per-Repository --
+# consumed via the fixed `pipelines-as-code-secret` name the PAC
+# controller expects (PAC_CONTROLLER_SECRET env var).
+
+resource "google_secret_manager_secret" "github_pac_app_id" {
+  secret_id = "github-pac-app-id"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "github_pac_app_private_key" {
+  secret_id = "github-pac-app-private-key"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "github_pac_app_webhook_secret" {
+  secret_id = "github-pac-app-webhook-secret"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
 resource "google_secret_manager_secret" "google_oauth_client_id" {
   secret_id = "google-oauth-client-id"
   labels = {
