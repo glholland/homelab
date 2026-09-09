@@ -28,7 +28,9 @@ spec:
             value: "{{ repo_url }}"
           - name: revision
             value: "{{ revision }}"
-      - name: kustomize-build
+          - name: depth
+            value: "0"
+      - name: changed-files
         runAfter: ["fetch-source"]
         workspaces:
           - name: source
@@ -36,6 +38,34 @@ spec:
         taskSpec:
           workspaces:
             - name: source
+          results:
+            - name: changed-files
+              description: Newline-separated files under kubernetes/ or okd/ changed vs the target branch
+          steps:
+            - name: changed-files
+              image: registry.k8s.io/kustomize/kustomize:v5.4.3
+              workingDir: $(workspaces.source.path)
+              script: |
+                #!/bin/sh
+                set -eu
+                git config --global --add safe.directory "$(pwd)"
+                git fetch --unshallow origin "{{ target_branch }}" 2>/dev/null || git fetch origin "{{ target_branch }}"
+                git diff --name-only --diff-filter=d "origin/{{ target_branch }}...HEAD" -- kubernetes okd \
+                  > "$(results.changed-files.path)"
+      - name: kustomize-build
+        runAfter: ["changed-files"]
+        workspaces:
+          - name: source
+            workspace: source
+        params:
+          - name: changed-files
+            value: "$(tasks.changed-files.results.changed-files)"
+        taskSpec:
+          workspaces:
+            - name: source
+          params:
+            - name: changed-files
+              type: string
           steps:
             - name: kustomize-build
               image: registry.k8s.io/kustomize/kustomize:v5.4.3
@@ -43,21 +73,48 @@ spec:
               script: |
                 #!/bin/sh
                 set -eu
+                changed="$(params.changed-files)"
+                if [ -z "$changed" ]; then
+                  echo "no kubernetes/okd changes in this PR"
+                  exit 0
+                fi
+                dirs_file=/tmp/kustomize-dirs.txt
+                : > "$dirs_file"
+                printf '%s\n' "$changed" | while IFS= read -r f; do
+                  [ -z "$f" ] && continue
+                  d=$(dirname "$f")
+                  while [ "$d" != "." ] && [ "$d" != "/" ]; do
+                    if [ -f "$d/kustomization.yaml" ]; then
+                      echo "$d"
+                      break
+                    fi
+                    d=$(dirname "$d")
+                  done
+                done | sort -u > "$dirs_file"
+                if [ ! -s "$dirs_file" ]; then
+                  echo "no changed files fall under a kustomization"
+                  exit 0
+                fi
                 status=0
-                for kustomization in $(find kubernetes okd -name kustomization.yaml); do
-                  dir=$(dirname "$kustomization")
+                while IFS= read -r dir; do
                   echo "==> $dir"
                   kustomize build "$dir" >/dev/null || status=1
-                done
+                done < "$dirs_file"
                 exit $status
       - name: yamllint
-        runAfter: ["fetch-source"]
+        runAfter: ["changed-files"]
         workspaces:
           - name: source
             workspace: source
+        params:
+          - name: changed-files
+            value: "$(tasks.changed-files.results.changed-files)"
         taskSpec:
           workspaces:
             - name: source
+          params:
+            - name: changed-files
+              type: string
           steps:
             - name: yamllint
               image: docker.io/cytopia/yamllint:1
@@ -65,7 +122,18 @@ spec:
               script: |
                 #!/bin/sh
                 set -eu
-                yamllint -d relaxed --no-warnings kubernetes okd
+                changed_file=/tmp/yamllint-changed.txt
+                printf '%s\n' "$(params.changed-files)" | grep -E '\.ya?ml$' > "$changed_file" || true
+                if [ ! -s "$changed_file" ]; then
+                  echo "no yaml changes in this PR"
+                  exit 0
+                fi
+                status=0
+                while IFS= read -r f; do
+                  [ -z "$f" ] && continue
+                  yamllint -d relaxed --no-warnings "$f" || status=1
+                done < "$changed_file"
+                exit $status
   workspaces:
     - name: source
       volumeClaimTemplate:

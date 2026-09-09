@@ -59,7 +59,7 @@ PAC originally ran on a webhook+PAT provider (a manually-registered repo webhook
 
 `PipelineRun` definitions live at [`.tekton/`](../../.tekton/) (repo root), not here:
 - `build-and-push.yaml` -- Harbor image builds on push to `main`, scoped to `images/**`.
-- `ci-checks.yaml` -- `kustomize build` + `yamllint` on PRs.
+- `ci-checks.yaml` -- `kustomize build` + `yamllint` on PRs, scoped to files actually changed vs the target branch (diffed in a dedicated `changed-files` task) rather than the whole `kubernetes`/`okd` tree, so pre-existing debt elsewhere doesn't block unrelated PRs.
 
 Notes:
 - Reporting is via real GitHub Checks (the Checks tab, with log-snippet annotations on failure) now that PAC runs as a GitHub App -- see Manual Steps above.
