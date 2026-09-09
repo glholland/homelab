@@ -5,10 +5,3 @@ metadata:
   namespace: tekton-ci
 spec:
   url: "https://github.com/glholland/homelab"
-  git_provider:
-    secret:
-      name: github-pac-provider
-      key: token
-    webhook_secret:
-      name: github-pac-provider
-      key: webhook.secret
