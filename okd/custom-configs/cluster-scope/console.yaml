@@ -1,0 +1,41 @@
+apiVersion: operator.openshift.io/v1
+kind: Console
+metadata:
+  name: cluster
+spec:
+  customization:
+    addPage: {}
+    capabilities:
+      - name: LightspeedButton
+        visibility:
+          state: Enabled
+      - name: GettingStartedBanner
+        visibility:
+          state: Enabled
+    customLogoFile:
+      name: ""
+    developerCatalog:
+      types:
+        state: Enabled
+    perspectives:
+      - id: dev
+        visibility:
+          state: Disabled
+    projectAccess: {}
+    quickStarts: {}
+  ingress:
+    clientDownloadsURL: ""
+    consoleURL: ""
+  logLevel: Normal
+  managementState: Managed
+  operatorLogLevel: Normal
+  plugins:
+    - networking-console-plugin
+    - monitoring-plugin
+    - nmstate-console-plugin
+    - pipelines-console-plugin
+  providers: {}
+  route:
+    hostname: ""
+    secret:
+      name: ""
