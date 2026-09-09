@@ -1,0 +1,16 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  labels:
+    app.kubernetes.io/instance: tekton
+  name: okd-pipelines-operator
+  namespace: openshift-operators
+spec:
+  # TODO: verify against `oc get packagemanifest okd-pipelines-operator -n openshift-marketplace -o yaml`
+  # before first apply -- channel names/versions on the okderators catalog aren't guaranteed to match
+  # upstream OpenShift Pipelines.
+  channel: latest
+  installPlanApproval: Manual
+  name: okd-pipelines-operator
+  source: okderators
+  sourceNamespace: openshift-marketplace

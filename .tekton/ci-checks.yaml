@@ -1,0 +1,72 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: ci-checks
+  namespace: tekton-ci
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[pull_request]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
+    pipelinesascode.tekton.dev/task: "[git-clone]"
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+spec:
+  pipelineSpec:
+    workspaces:
+      - name: source
+    tasks:
+      - name: fetch-source
+        taskRef:
+          name: git-clone
+        workspaces:
+          - name: output
+            workspace: source
+        params:
+          - name: url
+            value: "{{ repo_url }}"
+          - name: revision
+            value: "{{ revision }}"
+      - name: kustomize-build
+        runAfter: ["fetch-source"]
+        workspaces:
+          - name: source
+            workspace: source
+        taskSpec:
+          workspaces:
+            - name: source
+          steps:
+            - name: kustomize-build
+              image: registry.k8s.io/kustomize/kustomize:v5.4.3
+              workingDir: $(workspaces.source.path)
+              script: |
+                #!/bin/sh
+                set -eu
+                status=0
+                for kustomization in $(find kubernetes okd -name kustomization.yaml); do
+                  dir=$(dirname "$kustomization")
+                  echo "==> $dir"
+                  kustomize build "$dir" >/dev/null || status=1
+                done
+                exit $status
+      - name: yamllint
+        runAfter: ["fetch-source"]
+        workspaces:
+          - name: source
+            workspace: source
+        taskSpec:
+          workspaces:
+            - name: source
+          steps:
+            - name: yamllint
+              image: docker.io/cytopia/yamllint:1
+              workingDir: $(workspaces.source.path)
+              script: |
+                #!/bin/sh
+                set -eu
+                yamllint -d relaxed kubernetes okd
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 512Mi

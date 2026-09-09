@@ -193,6 +193,46 @@ resource "google_secret_manager_secret" "external_dns_pihole_password" {
   }
 }
 
+resource "google_secret_manager_secret" "github_pac_token" {
+  secret_id = "github-pac-token"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "github_pac_webhook_secret" {
+  secret_id = "github-pac-webhook-secret"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "harbor_ci_robot_username" {
+  secret_id = "harbor-ci-robot-username"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "harbor_ci_robot_password" {
+  secret_id = "harbor-ci-robot-password"
+  labels = {
+    label = "tekton"
+  }
+  replication {
+    auto {}
+  }
+}
+
 resource "google_secret_manager_secret" "google_oauth_client_id" {
   secret_id = "google-oauth-client-id"
   labels = {
