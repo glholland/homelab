@@ -7,3 +7,4 @@ resources:
   - ./avp-credential-config.yaml
   - ./cmp-configmap.yaml
   - ./argocd-cr.yaml
+  - ./application-controller-clusterrolebinding.yaml
