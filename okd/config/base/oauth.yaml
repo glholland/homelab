@@ -14,8 +14,6 @@ spec:
         extraScopes: []
         issuer: https://accounts.google.com
         claims:
-          id:
-            - sub
           preferredUsername:
             - email
           name:
