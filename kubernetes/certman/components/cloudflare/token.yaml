@@ -9,4 +9,4 @@ metadata:
     app.kubernetes.io/instance: certificate-manager
 type: Opaque
 stringData:
-  api-token: <path:projects/project_id/secrets/cf_token#cf_token>
+  api-token: <path:projects/812524172865/secrets/cf_token#cf_token>
