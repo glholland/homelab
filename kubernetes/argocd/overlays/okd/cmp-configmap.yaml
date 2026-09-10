@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kustomize-avp-plugin
+  namespace: openshift-gitops
+data:
+  plugin.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: kustomize-avp
+    spec:
+      generate:
+        command: ["sh", "-c"]
+        args: ["kustomize build . | argocd-vault-plugin generate -"]
+      discover:
+        fileName: "kustomization.yaml"

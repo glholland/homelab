@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: certman
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/glholland/homelab
+    targetRevision: main
+    path: kubernetes/certman/overlays/okd
+    plugin:
+      name: kustomize-avp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager

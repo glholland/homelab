@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: argocd-wif-refresher
+  namespace: openshift-gitops
+spec:
+  schedule: "0 6 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          serviceAccountName: argocd-wif-refresher
+          restartPolicy: Never
+          containers:
+            - name: refresh
+              image: google/cloud-sdk:slim
+              env:
+                - name: HOME
+                  value: /tmp
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: /var/run/secrets/gcp/credential-config.json
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  curl -sSf \
+                    --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+                    -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+                    https://kubernetes.default.svc/openid/v1/jwks -o /tmp/jwks.json
+                  # gcloud CLI needs an explicit login; ADC alone isn't enough.
+                  gcloud auth login --cred-file="$GOOGLE_APPLICATION_CREDENTIALS" --quiet
+                  gcloud iam workload-identity-pools providers update-oidc okd-cluster-provider \
+                    --project=home-26300 \
+                    --location=global \
+                    --workload-identity-pool=okd-cluster-pool \
+                    --jwk-json-path=/tmp/jwks.json
+              volumeMounts:
+                - name: gcp-credential-config
+                  mountPath: /var/run/secrets/gcp
+                  readOnly: true
+                - name: gcp-wif-token
+                  mountPath: /var/run/secrets/gcp-token
+                  readOnly: true
+          volumes:
+            - name: gcp-credential-config
+              configMap:
+                name: argocd-wif-refresher-credential-config
+            - name: gcp-wif-token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      path: token
+                      audience: "https://iam.googleapis.com/projects/812524172865/locations/global/workloadIdentityPools/okd-cluster-pool/providers/okd-cluster-provider"
+                      expirationSeconds: 3600

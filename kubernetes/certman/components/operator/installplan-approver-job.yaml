@@ -17,7 +17,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: approve
-          image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+          image: quay.io/openshift/origin-cli:latest
           command:
             - /bin/sh
             - -c

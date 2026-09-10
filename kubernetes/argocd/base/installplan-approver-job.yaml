@@ -1,17 +1,17 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: approve-okd-pipelines-operator-installplan
+  name: approve-gitops-operator-installplan
   namespace: openshift-operators
   labels:
-    app.kubernetes.io/instance: tekton
+    app.kubernetes.io/instance: argocd
 spec:
   backoffLimit: 3
   activeDeadlineSeconds: 600
   template:
     metadata:
       labels:
-        app.kubernetes.io/instance: tekton
+        app.kubernetes.io/instance: argocd
     spec:
       serviceAccountName: installplan-approver
       restartPolicy: Never
@@ -24,7 +24,7 @@ spec:
             - |
               set -eu
               for i in $(seq 1 30); do
-                ip=$(oc get subscription okd-pipelines-operator -n openshift-operators -o jsonpath='{.status.installPlanRef.name}' 2>/dev/null || true)
+                ip=$(oc get subscription gitops-operator -n openshift-operators -o jsonpath='{.status.installPlanRef.name}' 2>/dev/null || true)
                 if [ -n "$ip" ]; then
                   oc patch installplan "$ip" -n openshift-operators --type merge -p '{"spec":{"approved":true}}'
                   echo "approved $ip"

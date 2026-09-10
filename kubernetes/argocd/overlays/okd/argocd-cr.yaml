@@ -1,0 +1,80 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: openshift-gitops
+  namespace: openshift-gitops
+spec:
+  rbac:
+    # No OpenShift Group objects exist here, so the default group-based policy never matches.
+    defaultPolicy: "role:admin"
+  repo:
+    serviceaccount: argocd-repo-server-avp
+    env:
+      - name: AVP_TYPE
+        value: gcpsecretmanager
+      - name: GOOGLE_APPLICATION_CREDENTIALS
+        value: /var/run/secrets/gcp/credential-config.json
+    volumes:
+      - name: gcp-credential-config
+        configMap:
+          name: argocd-avp-credential-config
+      - name: gcp-wif-token
+        projected:
+          sources:
+            - serviceAccountToken:
+                path: token
+                audience: "https://iam.googleapis.com/projects/812524172865/locations/global/workloadIdentityPools/okd-cluster-pool/providers/okd-cluster-provider"
+                expirationSeconds: 3600
+      - name: custom-tools
+        emptyDir: {}
+      - name: cmp-plugin
+        configMap:
+          name: kustomize-avp-plugin
+      - name: cmp-tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: gcp-credential-config
+        mountPath: /var/run/secrets/gcp
+        readOnly: true
+      - name: gcp-wif-token
+        mountPath: /var/run/secrets/gcp-token
+        readOnly: true
+    initContainers:
+      # Downloads the one binary missing from the stock repo-server image.
+      - name: download-avp
+        image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            curl -sSfL -o /custom-tools/argocd-vault-plugin \
+              https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v1.18.1/argocd-vault-plugin_1.18.1_linux_amd64
+            chmod +x /custom-tools/argocd-vault-plugin
+        volumeMounts:
+          - name: custom-tools
+            mountPath: /custom-tools
+    sidecarContainers:
+      # image omitted: defaults to the repo server's own image.
+      - name: kustomize-avp
+        command: ["sh", "-c", "PATH=$PATH:/custom-tools argocd-cmp-server"]
+        env:
+          - name: AVP_TYPE
+            value: gcpsecretmanager
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/run/secrets/gcp/credential-config.json
+        volumeMounts:
+          - name: gcp-credential-config
+            mountPath: /var/run/secrets/gcp
+            readOnly: true
+          - name: gcp-wif-token
+            mountPath: /var/run/secrets/gcp-token
+            readOnly: true
+          - name: custom-tools
+            mountPath: /custom-tools
+          - name: cmp-tmp
+            mountPath: /tmp
+          - name: cmp-plugin
+            mountPath: /home/argocd/cmp-server/config/plugin.yaml
+            subPath: plugin.yaml
+          # Reuses the volume the operator already mounts on the main container at this path.
+          - name: plugins
+            mountPath: /home/argocd/cmp-server/plugins
