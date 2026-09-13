@@ -50,6 +50,12 @@ rm all.yaml
 
 Advertised routes need manual approval: admin console -> **Machines** -> find `home-lan-router` -> approve the `10.0.0.0/16` route.
 
+## Ingress: ArgoCD UI
+
+`overlays/okd/ingress-argocd.yaml` exposes the GitOps `openshift-gitops-server` Service over Tailscale (`argocd.<tailnet>.ts.net`) via the userspace per-Ingress proxy -- same no-extra-privilege path already confirmed for `ingressClassName: tailscale` above, nothing SCC-related needed here. It lives in this overlay rather than under `kubernetes/argocd/` because it's Tailscale-specific exposure config, same reasoning as `connector.yaml`.
+
+It targets the Service's `https` port directly (the GitOps operator serves TLS w/ a self-signed service-ca cert; the tailscale operator doesn't verify backend certs, so this works without flipping ArgoCD into `server.insecure` mode). Unverified against the live Service/port name -- confirm both once cluster access is back (`oc get svc -n openshift-gitops openshift-gitops-server -o yaml`).
+
 ## Apply
 
 ```bash

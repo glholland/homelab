@@ -6,3 +6,4 @@ resources:
   - scc.yaml
   - proxyclass.yaml
   - connector.yaml
+  - ingress-argocd.yaml

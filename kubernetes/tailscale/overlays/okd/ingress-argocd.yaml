@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd
+  namespace: openshift-gitops
+  annotations:
+    tailscale.com/hostname: argocd
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: openshift-gitops-server
+      port:
+        name: https
