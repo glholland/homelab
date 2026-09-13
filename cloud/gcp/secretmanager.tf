@@ -195,6 +195,26 @@ resource "google_secret_manager_secret" "external_dns_pihole_password" {
   }
 }
 
+resource "google_secret_manager_secret" "tailscale_oauth_client_id" {
+  secret_id = "tailscale-oauth-client-id"
+  labels = {
+    label = "tailscale"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "tailscale_oauth_client_secret" {
+  secret_id = "tailscale-oauth-client-secret"
+  labels = {
+    label = "tailscale"
+  }
+  replication {
+    auto {}
+  }
+}
+
 resource "google_secret_manager_secret" "github_pac_token" {
   secret_id = "github-pac-token"
   labels = {

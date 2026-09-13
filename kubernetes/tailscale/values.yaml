@@ -1,0 +1,10 @@
+# oauth.clientId/clientSecret intentionally left unset: the chart then expects
+# a pre-existing Secret named operator-oauth (keys client_id, client_secret)
+# instead of templating one -- see overlays/okd/oauth-secret.yaml.
+
+# OKD's restricted SCC runs the pod as an arbitrary non-root UID with no
+# writable $HOME, but tsnet needs one to create its state dir (~/.config/...).
+operatorConfig:
+  extraEnv:
+    - name: HOME
+      value: /tmp

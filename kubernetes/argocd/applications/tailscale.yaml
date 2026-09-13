@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/glholland/homelab
+    targetRevision: main
+    path: kubernetes/tailscale/overlays/okd
+    plugin:
+      name: kustomize-avp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tailscale
