@@ -7,3 +7,4 @@ resources:
   - metallb.yaml
   - certman.yaml
   - external-dns.yaml
+  - tailscale.yaml
