@@ -21,7 +21,12 @@ rm all.yaml
 
 - `operatorConfig.extraEnv` sets `HOME=/tmp` on the operator `Deployment`: OKD's `restricted-v2` SCC runs the pod as an arbitrary non-root UID with no writable `$HOME`, and `tsnet` needs one to create its state dir (`~/.config/tsnet-operator`) -- fails with `mkdir /.config: permission denied` otherwise.
 - Per-`Ingress` proxy pods (`ingressClassName: tailscale`) run Tailscale's userspace networking mode -- no kernel networking privilege needed, confirmed working against OKD's default SCC as-is, nothing added for them.
-- The `Connector` (subnet router, below) is different in kind: it forwards arbitrary IP traffic, which needs a real TUN device (`CAP_NET_ADMIN`/`CAP_NET_RAW`) -- capabilities the default SCC strips. Rather than bind to the built-in `system:openshift:scc:privileged` (the `metallb-speaker` pattern, which grants far more than needed), `overlays/okd/scc.yaml` defines a custom `SecurityContextConstraints` scoped to exactly those two capabilities for just the `proxies` ServiceAccount -- same self-scoped-SCC pattern already used by `telegraf`/`harbor`/etc. `overlays/okd/proxyclass.yaml` adds the capabilities to the proxy pod spec; the `Connector` references it via `spec.proxyClass`.
+- The `Connector` (subnet router, below) is different in kind: it forwards arbitrary IP traffic, which needs a real TUN device (`CAP_NET_ADMIN`/`CAP_NET_RAW`) plus the ability to set `net.ipv4.ip_forward`/`net.ipv6.conf.all.forwarding` in its own network namespace -- capabilities and writes the default SCC strips.
+  Two narrower approaches were tried first and both turned out to be dead ends on this cluster:
+  - A custom `SecurityContextConstraints` scoped to just `NET_ADMIN`/`NET_RAW`, with the pod's own `securityContext.sysctls` declaring the forwarding sysctls -- rejected by the kubelet (`forbidden sysctl ... not allowlisted`) unless allowlisted cluster-wide via a `KubeletConfig`, which rolls every worker node.
+  - A `Tuned` profile matching the proxy pod by label, setting the sysctls from the host side via `setns()` (bypassing the kubelet's sysctl gate entirely) -- this is a real OpenShift mechanism (used for DPDK/SR-IOV), but per-pod label matching in `Tuned.spec.recommend[].match` is deprecated on this OKD/NTO version; the `Tuned` object is rejected outright (`Valid: False`, `Deprecated pod label matching detected`) and never actually applies.
+
+  Landed on the same pattern `metallb-speaker` uses instead: `overlays/okd/rolebinding-privileged.yaml` binds the `proxies` ServiceAccount to the built-in `system:openshift:scc:privileged` ClusterRole. This grants more than the Connector strictly needs (the metallb precedent, not the narrowly-scoped-SCC pattern used elsewhere in this repo), but a genuinely privileged container isn't subject to the sysctl-write restriction at all -- the tailscale operator's own default proxy pod spec already runs `privileged: true` when no `ProxyClass` overrides it, so no `ProxyClass` is needed here anymore either.
 
 ## Manual Steps
 
@@ -49,6 +54,8 @@ rm all.yaml
 `overlays/okd/connector.yaml` advertises `10.0.0.0/16` (the home LAN) to the tailnet -- VPN-style access to non-Kubernetes devices (e.g. the UDM Pro's admin UI) by their normal IP, not per-service `Ingress` publishing. Subnet-router only, no exit node -- other internet traffic on a connected device stays off the home connection.
 
 Advertised routes need manual approval: admin console -> **Machines** -> find `home-lan-router` -> approve the `10.0.0.0/16` route.
+
+IP forwarding for this pod's network namespace comes for free from being privileged (see the `rolebinding-privileged.yaml` note above) -- nothing else to apply for it.
 
 ## Ingress: ArgoCD UI
 

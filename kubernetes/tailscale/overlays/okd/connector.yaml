@@ -4,7 +4,6 @@ metadata:
   name: home-lan-router
 spec:
   hostname: home-lan-router
-  proxyClass: subnet-router
   subnetRouter:
     advertiseRoutes:
       - "10.0.0.0/16"

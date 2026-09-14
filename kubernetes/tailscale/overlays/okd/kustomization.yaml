@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ../../base
   - oauth-secret.yaml
-  - scc.yaml
-  - proxyclass.yaml
+  - rolebinding-privileged.yaml
   - connector.yaml
   - ingress-argocd.yaml
