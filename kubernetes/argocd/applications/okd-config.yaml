@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/glholland/homelab
     targetRevision: main
-    path: okd/config/base
+    path: okd/config/overlays/okd
     plugin:
       name: kustomize-avp
   destination:
