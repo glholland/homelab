@@ -5,10 +5,10 @@ metadata:
   labels:
     app.kubernetes.io/instance: okd-configuration
 spec:
-  channel: stable-4.22
+  channel: stable-5.0
   clusterID: a5b616a6-0ba8-4548-b6eb-77cc5decf47a
   desiredUpdate:
     force: true
-    image: quay.io/okd/scos-release@sha256:371309d97da5c7f595662cb7d2a9bf11c05fe96f2bf54898e6da60f13c12ffda
-    version: 4.22.0-okd-scos.0
+    image: quay.io/okd/scos-release@sha256:eca01dee0f0690a8149d58f0a8c7e3187f624d583c1b713dc660bd1b28c2dfbc
+    version: 5.0.0-okd-scos.0
   upstream: https://amd64.origin.releases.ci.openshift.org/graph
