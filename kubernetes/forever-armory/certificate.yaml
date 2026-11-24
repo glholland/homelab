@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: forever-armory-cert
+  namespace: forever-armory
+spec:
+  dnsNames:
+    - armory.garrettholland.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  secretName: forever-armory-tls

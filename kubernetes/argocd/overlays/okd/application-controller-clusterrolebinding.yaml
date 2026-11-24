@@ -22,7 +22,7 @@ rules:
     resources: ["ipaddresspools", "l2advertisements"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["networking.k8s.io"]
-    resources: ["ingressclasses"]
+    resources: ["ingressclasses", "ingresses"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["tailscale.com"]
     resources: ["connectors"]

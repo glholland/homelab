@@ -8,3 +8,4 @@ resources:
   - certman.yaml
   - external-dns.yaml
   - tailscale.yaml
+  - forever-armory.yaml

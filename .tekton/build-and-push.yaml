@@ -6,7 +6,7 @@ metadata:
   annotations:
     pipelinesascode.tekton.dev/on-event: "[push]"
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
-    pipelinesascode.tekton.dev/on-path-change: "[\"images/**\"]"
+    pipelinesascode.tekton.dev/on-path-change: "[\"images/steam-cmd/**\"]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   taskRunTemplate:
@@ -53,10 +53,10 @@ spec:
             value: "images/$(params.image-name)"
   params:
     - name: image-name
-      # NOTE: on-path-change scopes this PipelineRun to images/**, but Tekton has no built-in
-      # "which subdirectory changed" param -- until that's wired up (a small script step reading
-      # `{{ files_changed_added_or_modified }}`), this needs to be set per image or the pipeline
-      # generalized to loop over changed images. Left as a known gap, see kubernetes/tekton/README.md.
+      # One PipelineRun per image: copy this file for a new images/<name>/ and
+      # change on-path-change and this value (see build-and-push-forever-armory.yaml).
+      # One PipelineRun per image: copy this file for a new images/<name>/ and
+      # change on-path-change and this value (see build-and-push-forever-armory.yaml).
       value: "steam-cmd"
   workspaces:
     - name: source

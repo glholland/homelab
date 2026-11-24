@@ -1,0 +1,31 @@
+# Same shape as open-webui: OKD's router turns this Ingress into a Route, and
+# external-dns publishes the name to the LAN resolver (not the internet).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: forever-armory
+  namespace: forever-armory
+  labels:
+    app.kubernetes.io/name: forever-armory
+    external-dns: enabled
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: armory.garrettholland.com
+    external-dns.alpha.kubernetes.io/target: 10.0.0.253
+    route.openshift.io/termination: edge
+spec:
+  ingressClassName: openshift-default
+  rules:
+    - host: armory.garrettholland.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: forever-armory
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - armory.garrettholland.com
+      secretName: forever-armory-tls
