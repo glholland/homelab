@@ -312,3 +312,37 @@ resource "google_secret_manager_secret" "google_oauth_client_id" {
     auto {}
   }
 }
+
+## forever-armory: Blizzard API client (develop.battle.net), used server-side
+## to look up WoW: Forever characters. Values added out of band.
+
+resource "google_secret_manager_secret" "blizzard_client_id" {
+  secret_id = "blizzard-client-id"
+  labels = {
+    label = "forever-armory"
+  }
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "blizzard_client_secret" {
+  secret_id = "blizzard-client-secret"
+  labels = {
+    label = "forever-armory"
+  }
+  replication {
+    auto {}
+  }
+}
+
+# Created with gcloud on 2026-11-24 before this file was applied; adopt them.
+import {
+  to = google_secret_manager_secret.blizzard_client_id
+  id = "projects/home-26300/secrets/blizzard-client-id"
+}
+
+import {
+  to = google_secret_manager_secret.blizzard_client_secret
+  id = "projects/home-26300/secrets/blizzard-client-secret"
+}
