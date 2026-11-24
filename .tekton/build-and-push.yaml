@@ -51,6 +51,10 @@ spec:
             value: "harbor.lab.garrettholland.com/library/$(params.image-name):latest"
           - name: CONTEXT
             value: "images/$(params.image-name)"
+          # buildah >= 1.43 overlay-mounts the build context, which fails on the
+          # truenas-nfs workspace ("mount overlay ... invalid argument"). 1.42.2 works.
+          - name: BUILDER_IMAGE
+            value: "quay.io/buildah/stable:v1.42.2"
   params:
     - name: image-name
       # One PipelineRun per image: copy this file for a new images/<name>/ and
