@@ -3,8 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - secret.yaml
-  - harbor-push-secret.yaml
-  - buildconfig.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml

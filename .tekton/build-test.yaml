@@ -6,7 +6,7 @@ metadata:
   annotations:
     pipelinesascode.tekton.dev/on-event: "[pull_request]"
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
-    pipelinesascode.tekton.dev/on-path-change: "[\"images/**\"]"
+    pipelinesascode.tekton.dev/on-path-change: "[\"images/steam-cmd/**\"]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
   taskRunTemplate:
@@ -55,7 +55,8 @@ spec:
             value: "true"
   params:
     - name: image-name
-      # Same known gap as build-and-push.yaml - see kubernetes/tekton/README.md.
+      # One PipelineRun per image: copy this file for a new images/<name>/ and
+      # change on-path-change and this value (see build-and-push-forever-armory.yaml).
       value: "steam-cmd"
   workspaces:
     - name: source

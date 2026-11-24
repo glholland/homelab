@@ -18,7 +18,7 @@ spec:
     automated:
       selfHeal: true
       prune: true
-    # The controller's RBAC for ingresses/buildconfigs syncs in a separate app;
+    # The controller's RBAC for ingresses syncs in a separate app;
     # retry rather than stay failed if this one goes first.
     retry:
       limit: 10

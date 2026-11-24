@@ -12,12 +12,14 @@ achievements, collections and PvP. Data is as of the character's last logout.
 - `report.py`: turns the profile responses into the HTML page.
 
 Deployed by `kubernetes/forever-armory` (Argo CD application `forever-armory`) at
-https://armory.garrettholland.com, LAN only. The image is built into Harbor by
-the BuildConfig in that folder, in the cluster, from `main`. It builds once when
-Argo CD creates it; after changing the code here:
+https://armory.garrettholland.com, LAN only. The image is built from the
+`Dockerfile` here by Tekton (`.tekton/build-and-push-forever-armory.yaml`): a push
+to `main` that touches `images/forever-armory/**` builds it and pushes
+`harbor.lab.garrettholland.com/library/forever-armory:latest`. A PR touching
+`images/forever-armory/**` builds without pushing (`build-test-forever-armory.yaml`).
+The pipeline stops at the push, so pick up a new image with:
 
 ```bash
-oc start-build forever-armory -n forever-armory --follow
 oc rollout restart deploy/forever-armory -n forever-armory
 ```
 
