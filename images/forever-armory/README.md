@@ -13,7 +13,13 @@ achievements, collections and PvP. Data is as of the character's last logout.
 
 Deployed by `kubernetes/forever-armory` (Argo CD application `forever-armory`) at
 https://armory.garrettholland.com, LAN only. The image is built into Harbor by
-`.tekton/build-forever-armory.yaml` on pushes to `images/forever-armory/**`.
+the BuildConfig in that folder, in the cluster, from `main`. It builds once when
+Argo CD creates it; after changing the code here:
+
+```bash
+oc start-build forever-armory -n forever-armory --follow
+oc rollout restart deploy/forever-armory -n forever-armory
+```
 
 Credentials: a Blizzard API client from https://develop.battle.net, stored in
 Secret Manager as `blizzard-client-id` and `blizzard-client-secret` and injected by

@@ -1,0 +1,37 @@
+# Builds images/forever-armory from main into Harbor, inside the cluster (like
+# gbos-builder). Runs once when created; after code changes, rebuild with
+#   oc start-build forever-armory -n forever-armory --follow
+#   oc rollout restart deploy/forever-armory -n forever-armory
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: forever-armory
+  namespace: forever-armory
+  labels:
+    app.kubernetes.io/name: forever-armory
+spec:
+  runPolicy: Serial
+  source:
+    type: Git
+    git:
+      uri: https://github.com/glholland/homelab
+      ref: main
+    contextDir: images/forever-armory
+  strategy:
+    type: Docker
+    dockerStrategy:
+      forcePull: true
+  output:
+    to:
+      kind: DockerImage
+      name: harbor.lab.garrettholland.com/library/forever-armory:latest
+    pushSecret:
+      name: harbor-push-secret
+  triggers:
+    - type: ConfigChange
+  successfulBuildsHistoryLimit: 3
+  failedBuildsHistoryLimit: 3
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi

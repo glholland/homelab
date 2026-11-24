@@ -18,7 +18,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: forever-armory
-          # Built from images/forever-armory by .tekton/build-forever-armory.yaml.
+          # Built from images/forever-armory by buildconfig.yaml.
           image: harbor.lab.garrettholland.com/library/forever-armory:latest
           imagePullPolicy: Always
           ports:
